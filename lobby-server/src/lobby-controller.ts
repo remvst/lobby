@@ -120,9 +120,15 @@ export class LobbyController {
             this.broadcast(message);
             break;
         case 'data':
-            console.log('its data');
             message.fromUserId = fromUserId;
             this.send(message.toUserId, message);
+            break;
+        case 'set-metadata':
+            const userHolder = this.users.get(message.userId);
+            if (userHolder) {
+                userHolder.user.metadata[message.key] = message.value;
+            }
+            this.notifyLobbyUpdated();
             break;
         }
     }

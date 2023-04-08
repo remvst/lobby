@@ -64,6 +64,7 @@ export default class LobbyServer {
             lobbyController.add({
                 id: userId,
                 displayName: request.playerDisplayName,
+                metadata: {},
             }, null);
             lobbyController.onClose = () => this.lobbies.delete(lobbyId);
             this.lobbies.set(lobbyId, lobbyController);
@@ -98,6 +99,7 @@ export default class LobbyServer {
             lobbyController.add({
                 id: userId,
                 displayName: request.playerDisplayName,
+                metadata: {},
             }, null);
 
             const token = jwt.sign({

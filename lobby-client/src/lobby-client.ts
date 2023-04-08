@@ -1,6 +1,6 @@
 import { Lobby } from "../../shared/lobby";
 import { Socket, io } from "socket.io-client";
-import { AnyMessage, DataMessage, TextMessage } from '../../shared/message';
+import { AnyMessage, DataMessage, SetMetadataMessage, TextMessage } from '../../shared/message';
 import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, ListLobbiesResponse } from "../../shared/api";
 
 export enum ConnectionState {
@@ -13,7 +13,9 @@ export default class LobbyClient {
 
     private socket: Socket;
     private url: string;
-    private userId: string;
+
+    userId: string;
+    lobby: Lobby;
 
     connectionState: ConnectionState = ConnectionState.DISCONNECTED;
     
@@ -50,13 +52,14 @@ export default class LobbyClient {
         } as DataMessage);
     }
 
-    sendData(toUserId: string, data: any) {
+    setMetadata(userId: string, key: string, value: any) {
         this.socket.emit('message', {
             'fromUserId': this.userId,
-            'data': data,
-            'toUserId': toUserId,
-            'type': 'data',
-        } as DataMessage);
+            'type': 'set-metadata',
+            userId,
+            key, 
+            value,
+        } as SetMetadataMessage);
     }
 
     async listLobbies(): Promise<Lobby[]> {
@@ -140,7 +143,8 @@ export default class LobbyClient {
             this.disconnect();
             break;
         case 'lobby-updated':
-            this.onLobbyUpdated(message.lobby);
+            this.lobby = message.lobby;
+            this.onLobbyUpdated(this.lobby);
             break;
         case 'text-message':
             this.onTextMessage(message.fromUserId, message.message);

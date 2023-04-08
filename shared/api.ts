@@ -33,4 +33,5 @@ export interface JoinLobbyResponse {
 export interface User {
     id: string;
     displayName: string;
+    metadata: {[key: string]: any};
 }

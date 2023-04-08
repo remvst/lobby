@@ -21,6 +21,7 @@ window.addEventListener('load', () => {
         dataMessage: document.querySelector('#data-message') as HTMLButtonElement,
         dataRecipient: document.querySelector('#data-recipient') as HTMLSelectElement,
         sendData: document.querySelector('#send-data') as HTMLButtonElement,
+        increaseScore: document.querySelector('#increase-score') as HTMLButtonElement,
     };
 
     dom.playerDisplayName.value = dom.playerDisplayName.value || `user-${~~(Math.random() * 100)}`;
@@ -65,18 +66,21 @@ window.addEventListener('load', () => {
             dom.disconnect.disabled = false;
             dom.playerDisplayName.disabled = dom.lobbyId.disabled = dom.lobbyDisplayName.disabled = true;
             dom.sendText.disabled = dom.textMessage.disabled = false;
+            dom.increaseScore.disabled = false;
             break;
         case ConnectionState.CONNECTING: 
             dom.create.disabled = dom.join.disabled = true;
             dom.disconnect.disabled = false;
             dom.playerDisplayName.disabled = dom.lobbyId.disabled = dom.lobbyDisplayName.disabled = true;
             dom.sendText.disabled = dom.textMessage.disabled = true;
+            dom.increaseScore.disabled = true;
             break;
         case ConnectionState.DISCONNECTED:
             dom.create.disabled = dom.join.disabled = false;
             dom.disconnect.disabled = true;
             dom.playerDisplayName.disabled = dom.lobbyId.disabled = dom.lobbyDisplayName.disabled = false;
             dom.sendText.disabled = dom.textMessage.disabled = true;
+            dom.increaseScore.disabled = false;
             break;
         }
     }
@@ -139,5 +143,14 @@ window.addEventListener('load', () => {
     dom.sendData.addEventListener('click', () => {
         log(`Sending data message`);
         client?.sendDataMessage(dom.dataRecipient.value, dom.dataMessage.value);
+    }, false);
+
+    dom.increaseScore.addEventListener('click', () => {
+        log(`Increasing my score`);
+
+        const myUser = client.lobby.participants.filter(p => p.id === client.userId)[0];
+        const newScore = (myUser.metadata.score || 0) + 1;
+
+        client.setMetadata(client.userId, 'score', newScore);
     }, false);
 });
