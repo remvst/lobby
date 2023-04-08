@@ -6,7 +6,7 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "start": "ts-node index.ts"
+    "start": "ts-node index.ts | bunyan"
   },
   "dependencies": {
     "socket.io": "^4.6.1",

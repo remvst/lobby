@@ -1,9 +1,15 @@
 import { Server, Socket } from "socket.io";
 import { LobbyController } from "./lobby-controller";
+import Logger, { createLogger } from "bunyan";
 
 export default class LobbyServer {
 
+    private readonly logger: Logger;
     private readonly lobbies = new Map<string, LobbyController>();
+
+    constructor() {
+        this.logger = createLogger({name: `lobby-server`});
+    }
 
     start(port: number) {
         const io = new Server({
@@ -17,21 +23,19 @@ export default class LobbyServer {
             this.onNewConnection(socket);
         });
 
-        console.log(`Starting lobby-server on port ${port}`);
+        this.logger.info(`Starting lobby-server on port ${port}`);
 
         io.listen(port);
     }
 
     private onNewConnection(socket: Socket) {
-        console.log('new connection', socket.handshake);
-        console.log('userId', socket.handshake.query.userId);
-        console.log('lobbyId', socket.handshake.query.lobbyId);
-
         const { query } = socket.handshake;
         const { userId, lobbyId } = query as {[key: string]: string};
 
+        this.logger.info('New connection', { userId, lobbyId });
+
         if (!userId || !lobbyId) {
-            console.log('Missing userId or lobbyId');
+            this.logger.info('Missing userId or lobbyId');
             socket.disconnect();
             return;
         }

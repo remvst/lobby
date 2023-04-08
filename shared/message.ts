@@ -14,12 +14,16 @@ export interface LobbyClosed extends Message {
     type: 'lobby-closed';
     lobbyId: string;
 }
-export interface GameUpdate extends Message {
-    type: 'game-update';
+
+export interface DataMessage extends Message {
+    type: 'data';
+    toUserId: string;
     data: any;
 }
 
-// TODO chat messages
-// TODO meta messages (RTC connection)
+export interface TextMessage extends Message {
+    type: 'text-message';
+    message: string;
+}
 
-export type AnyMessage = LobbyUpdated | LobbyClosed | GameUpdate;
+export type AnyMessage = LobbyUpdated | LobbyClosed | DataMessage | TextMessage;

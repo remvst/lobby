@@ -21,6 +21,49 @@
             <label>Lobby ID</label>
             <input type="text" id="lobby-id" />
         </div>
+
+        <div>
+            <button id="connect">Connect</button>
+            <button id="disconnect">Disconnect</button>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Send</legend>
+
+        <div>
+            <input type="text" id="text-message" />
+            <button id="send-text">Send text</button>
+        </div>
+
+        <div>
+            <input type="text" id="data-message" />
+            <select id="data-recipient"></select>
+            <button id="send-data">Data</button>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>WebRTC</legend>
+
+        <div>
+            <select id="webrtc-recipient"></select>
+            <button id="initiate-webrtc">Initiate WebRTC</button>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Lobby</legend>
+
+        <div>
+            <pre id="lobby-state"></pre>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Log</legend>
+
+        <div id="log"></div>
     </fieldset>
 </body>
 
