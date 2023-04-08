@@ -8,6 +8,6 @@
         "allowJs": false,
         "esModuleInterop": true
     },
-    "include": ["**/*.ts"],
+    "include": ["src/**/*.ts"],
     "exclude": ["node_modules"]
 }

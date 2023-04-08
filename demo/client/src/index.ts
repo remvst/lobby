@@ -41,27 +41,23 @@ window.addEventListener('load', () => {
         case ConnectionState.CONNECTED:
             dom.connect.disabled = true;
             dom.disconnect.disabled = false;
-            dom.userId.disabled = true;
-            dom.lobbyId.disabled = true;
-            dom.textMessage.disabled = false;
-            dom.sendText.disabled = false;
+            dom.userId.disabled = dom.lobbyId.disabled = true;
+            dom.sendText.disabled = dom.textMessage.disabled = false;
+            dom.webrtcRecipient.disabled = dom.initiateWebRTC.disabled = false;
             break;
         case ConnectionState.CONNECTING: 
             dom.connect.disabled = true;
             dom.disconnect.disabled = false;
-            dom.userId.disabled = true;
-            dom.lobbyId.disabled = true;
-            dom.textMessage.disabled = true;
-            dom.sendText.disabled = true;
+            dom.userId.disabled = dom.lobbyId.disabled = true;
+            dom.sendText.disabled = dom.textMessage.disabled = true;
+            dom.webrtcRecipient.disabled = dom.initiateWebRTC.disabled = true;
             break;
-            
         case ConnectionState.DISCONNECTED:
             dom.connect.disabled = false;
             dom.disconnect.disabled = true;
-            dom.userId.disabled = false;
-            dom.lobbyId.disabled = false;
-            dom.textMessage.disabled = true;
-            dom.sendText.disabled = true;
+            dom.userId.disabled = dom.lobbyId.disabled = false;
+            dom.sendText.disabled = dom.textMessage.disabled = true;
+            dom.webrtcRecipient.disabled = dom.initiateWebRTC.disabled = true;
             break;
         }
     }

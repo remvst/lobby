@@ -2,17 +2,17 @@
   "name": "@remvst/lobby-server-demo",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "author": "",
   "license": "ISC",
   "scripts": {
-    "start": "ts-node index.ts | bunyan"
+    "start": "ts-node src/index.ts | bunyan"
   },
   "dependencies": {
+    "@remvst/lobby-server": "file:../../lobby-server",
+    "bunyan": "^1.8.15",
     "socket.io": "^4.6.1",
     "ts-node": "^10.9.1",
-    "typescript": "^4.1.3",
-    "@remvst/lobby-server": "file:../../lobby-server"
+    "typescript": "^4.1.3"
   },
   "devDependencies": {
     "@types/node": "^18.11.5"
