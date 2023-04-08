@@ -2,12 +2,13 @@ import { Socket } from "socket.io";
 import { AnyMessage } from "../../shared/message";
 import { Lobby } from "../../shared/lobby";
 import Logger, { createLogger } from 'bunyan';
+import { User } from "../../shared/api";
 
-class User {
+class UserHolder {
     socket: Socket;
     lastActive: number = 0;
 
-    constructor(readonly id: string) {
+    constructor(readonly user: User) {
     }
 }
 
@@ -15,37 +16,51 @@ export class LobbyController {
 
     private readonly logger: Logger;
 
-    private readonly users = new Map<string, User>();
+    private readonly users = new Map<string, UserHolder>();
     readonly lobby: Lobby;
 
     onClose: () => void;
 
-    constructor(id: string) {
+    constructor(options: {
+        readonly id: string,
+        readonly displayName: string,
+    }) {
         this.lobby = {
-            'id': id,
+            'id': options.id,
+            'displayName': options.displayName,
             'leader': undefined,
             'participants': [],
         };
 
-        this.logger = createLogger({name: `lobby-controller-${id}`});
+        this.logger = createLogger({name: `lobby-controller-${this.lobby.id}`});
     }
     
-    add(userId: string, socket: Socket) {
-        this.logger.info(`Adding ${userId}`);
+    add(user: User, socket: Socket) {
+        this.logger.info(`Adding`, { user });
 
-        if (!this.users.has(userId)) {
-            this.users.set(userId, new User(userId));
+        if (!this.users.has(user.id)) {
+            this.users.set(user.id, new UserHolder(user));
         }
 
-        const user = this.users.get(userId)!;
-        user.lastActive = Date.now();
-        user.socket = socket;
+        const userHolder = this.users.get(user.id)!;
+        userHolder.lastActive = Date.now();
+        userHolder.socket = socket;
 
-        this.lobby.participants = Array.from(this.users.keys());
+        this.lobby.participants = Array.from(this.users.values()).map(holder => holder.user);
         if (!this.lobby.leader) {
-            this.lobby.leader = userId;
+            this.lobby.leader = user.id;
         }
 
+        this.notifyLobbyUpdated();
+    }
+
+    setSocket(userId: string, socket: Socket) {
+        const userHolder = this.users.get(userId)!;
+        if (!userHolder) {
+            return;
+        }
+
+        userHolder.socket = socket;
         socket.on('disconnect', () => this.remove(userId));
         socket.on('message', (message) => this.onMessage(userId, message));
 
@@ -60,7 +75,7 @@ export class LobbyController {
 
         user?.socket?.disconnect();
         this.users.delete(userId);
-        this.lobby.participants = this.lobby.participants.filter(id => id !== userId);
+        this.lobby.participants = Array.from(this.users.values()).map(holder => holder.user);
 
         if (userId === this.lobby.leader) {
             this.close();
@@ -73,12 +88,11 @@ export class LobbyController {
         const socket = this.users.get(toUserId)?.socket;
         if (!socket) return;
         socket.emit('msg', message);
-        console.log(toUserId, message);
     }
 
     broadcast(message: AnyMessage) {
-        for (const user of this.users.values()) {
-            this.send(user.id, message);
+        for (const userHolder of this.users.values()) {
+            this.send(userHolder.user.id, message);
         }
     }
 

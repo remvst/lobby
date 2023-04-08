@@ -1,6 +1,7 @@
 import { Lobby } from "../../shared/lobby";
 import { Socket, io } from "socket.io-client";
 import { AnyMessage, DataMessage, TextMessage } from '../../shared/message';
+import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, ListLobbiesResponse } from "../../shared/api";
 
 export enum ConnectionState {
     DISCONNECTED = 'disconnected',
@@ -12,7 +13,6 @@ export default class LobbyClient {
 
     private socket: Socket;
     private url: string;
-    private lobbyId: string;
     private userId: string;
 
     connectionState: ConnectionState = ConnectionState.DISCONNECTED;
@@ -61,25 +61,62 @@ export default class LobbyClient {
 
     async listLobbies(): Promise<Lobby[]> {
         const resp = await fetch(`${this.url}/lobbies`);
-        const json = await resp.json();
+        const json = await resp.json() as ListLobbiesResponse;
         return json.lobbies;
     }
 
-    async connect(opts: {
-        readonly lobbyId: string,
-        readonly userId: string,
+    async createAndJoin(opts: {
+        readonly playerDisplayName: string,
+        readonly lobbyDisplayName: string,
     }) {
-        this.lobbyId = opts.lobbyId;
-        this.userId = opts.userId;
+        const resp = await fetch(`${this.url}/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                lobbyDisplayName: opts.lobbyDisplayName,
+                playerDisplayName: opts.playerDisplayName,
+            } as CreateLobbyRequest),
+        });
 
+        const json = await resp.json() as CreateLobbyResponse;
+        const { token, userId } = json;
+        this.userId = userId;
+        return await this.connect({ token });
+    }
+
+    async join(opts: {
+        readonly playerDisplayName: string,
+        readonly lobbyId: string,
+    }) {
+        const resp = await fetch(`${this.url}/join`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                lobbyId: opts.lobbyId,
+                playerDisplayName: opts.playerDisplayName,
+            } as JoinLobbyRequest),
+        });
+
+        const json = await resp.json() as JoinLobbyResponse;
+        const { token, userId } = json;
+        this.userId = userId;
+        return await this.connect({ token });
+    }
+
+    private async connect(opts: {
+        readonly token: string,
+    }) {
         return new Promise<void>((resolve, reject) => {
             this.setConnectionState(ConnectionState.CONNECTING);
 
             this.socket = io(this.opts.url, {
                 reconnection: false,
                 query: {
-                    lobbyId: this.lobbyId,
-                    userId: this.userId,
+                    token: opts.token,
                 },
             });
             this.socket.on('connect', () => {
@@ -95,7 +132,6 @@ export default class LobbyClient {
     }
 
     private onMessage(message: AnyMessage) {
-        console.log(message);
         switch (message.type) {
         case 'data':
             this.onDataMessage(message.fromUserId, message.data);
