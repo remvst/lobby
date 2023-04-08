@@ -11,6 +11,9 @@ export enum ConnectionState {
 export default class LobbyClient {
 
     private socket: Socket;
+    private url: string;
+    private lobbyId: string;
+    private userId: string;
 
     connectionState: ConnectionState = ConnectionState.DISCONNECTED;
     
@@ -21,10 +24,8 @@ export default class LobbyClient {
 
     constructor(readonly opts: {
         readonly url: string,
-        readonly lobbyId: string,
-        readonly userId: string,
     }) {
-
+        this.url = opts.url;
     }
 
     private setConnectionState(state: ConnectionState) {
@@ -34,7 +35,7 @@ export default class LobbyClient {
 
     sendTextMessage(message: string) {
         this.socket.emit('message', {
-            'fromUserId': this.opts.userId,
+            'fromUserId': this.userId,
             'message': message,
             'type': 'text-message',
         } as TextMessage);
@@ -42,7 +43,7 @@ export default class LobbyClient {
 
     sendDataMessage(toUserId: string, data: any) {
         this.socket.emit('message', {
-            'fromUserId': this.opts.userId,
+            'fromUserId': this.userId,
             'toUserId': toUserId,
             'data': data,
             'type': 'data',
@@ -51,22 +52,34 @@ export default class LobbyClient {
 
     sendData(toUserId: string, data: any) {
         this.socket.emit('message', {
-            'fromUserId': this.opts.userId,
+            'fromUserId': this.userId,
             'data': data,
             'toUserId': toUserId,
             'type': 'data',
         } as DataMessage);
     }
 
-    async connect() {
+    async listLobbies(): Promise<Lobby[]> {
+        const resp = await fetch(`${this.url}/lobbies`);
+        const json = await resp.json();
+        return json.lobbies;
+    }
+
+    async connect(opts: {
+        readonly lobbyId: string,
+        readonly userId: string,
+    }) {
+        this.lobbyId = opts.lobbyId;
+        this.userId = opts.userId;
+
         return new Promise<void>((resolve, reject) => {
             this.setConnectionState(ConnectionState.CONNECTING);
 
             this.socket = io(this.opts.url, {
                 reconnection: false,
                 query: {
-                    lobbyId: this.opts.lobbyId,
-                    userId: this.opts.userId,
+                    lobbyId: this.lobbyId,
+                    userId: this.userId,
                 },
             });
             this.socket.on('connect', () => {

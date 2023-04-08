@@ -4,9 +4,13 @@ import { LobbyClient } from '@remvst/lobby-client';
 const params = new URLSearchParams(location.search);
 
 window.addEventListener('load', () => {
-    let client: LobbyClient;
+    const client: LobbyClient = new LobbyClient({
+        'url': 'http://localhost:9000',
+    });
     let peerConnection: RTCPeerConnection;
     let dataChannel: RTCDataChannel;
+
+    client.listLobbies().then((lobbies) => log(`Lobbies: ${JSON.stringify(lobbies)}`));
 
     const dom = {
         userId: document.querySelector('#user-id') as HTMLInputElement,
@@ -27,6 +31,56 @@ window.addEventListener('load', () => {
     dom.userId.value = dom.userId.value || params.get('userId') || `user-${~~(Math.random() * 100)}`;
     dom.lobbyId.value = dom.lobbyId.value || params.get('lobbyId') || `lobby-${~~(Math.random() * 100)}`;
     updateForConnectionState(ConnectionState.DISCONNECTED);
+
+    client.onConnectionStateChanged = (state) => {
+        log(`onConnectionStateChanged: ${state}`);
+        updateForConnectionState(state);
+    };
+    client.onLobbyUpdated = (lobby) => {
+        log(`onLobbyUpdated: ${JSON.stringify(lobby)}`);
+        dom.lobbyState.innerHTML = JSON.stringify(lobby, null, 4);
+
+        dom.dataRecipient.innerHTML = '';
+        for (const participant of lobby.participants) {
+            const element = document.createElement('option');
+            element.value = participant;
+            element.innerText = participant;
+            dom.dataRecipient.appendChild(element);
+        }
+
+        dom.webrtcRecipient.innerHTML = '';
+        for (const participant of lobby.participants) {
+            const element = document.createElement('option');
+            element.value = participant;
+            element.innerText = participant;
+            dom.webrtcRecipient.appendChild(element);
+        }
+    };
+    client.onDataMessage = async (userId: string, message: any) => {
+        log(`onDataMessage (${userId}): ${JSON.stringify(message)}`);
+
+        if (message.type === 'offer') {
+            peerConnection = createConnection(userId);
+
+            await peerConnection.setRemoteDescription(message.offer);
+
+            const answer = await peerConnection.createAnswer({});
+            await peerConnection.setLocalDescription(answer);
+
+            client?.sendDataMessage(userId, {'type': 'answer', answer});
+        }
+
+        if (message.type === 'answer') {
+            await peerConnection.setRemoteDescription(message.answer);
+        }
+
+        if (message.type === 'candidate') {
+            await peerConnection.addIceCandidate(message.candidate);
+        }
+    };
+    client.onTextMessage = (userId: string, message: string) => {
+        log(`onTextMessage (${userId}): ${message}`);
+    };
 
     function log(msg: string) {
         console.log(msg);
@@ -96,62 +150,10 @@ window.addEventListener('load', () => {
     dom.connect.addEventListener('click', () => {
         log(`Connecting...`);
 
-        client = new LobbyClient({
+        client.connect({
             'lobbyId': dom.lobbyId.value,
-            'url': 'http://localhost:9000/',
             'userId': dom.userId.value,
-        });
-        client.onConnectionStateChanged = (state) => {
-            log(`onConnectionStateChanged: ${state}`);
-            updateForConnectionState(state);
-        };
-        client.onLobbyUpdated = (lobby) => {
-            log(`onLobbyUpdated: ${JSON.stringify(lobby)}`);
-            dom.lobbyState.innerHTML = JSON.stringify(lobby, null, 4);
-
-            dom.dataRecipient.innerHTML = '';
-            for (const participant of lobby.participants) {
-                const element = document.createElement('option');
-                element.value = participant;
-                element.innerText = participant;
-                dom.dataRecipient.appendChild(element);
-            }
-
-            dom.webrtcRecipient.innerHTML = '';
-            for (const participant of lobby.participants) {
-                const element = document.createElement('option');
-                element.value = participant;
-                element.innerText = participant;
-                dom.webrtcRecipient.appendChild(element);
-            }
-        };
-        client.onDataMessage = async (userId: string, message: any) => {
-            log(`onDataMessage (${userId}): ${JSON.stringify(message)}`);
-
-            if (message.type === 'offer') {
-                peerConnection = createConnection(userId);
-
-                await peerConnection.setRemoteDescription(message.offer);
-
-                const answer = await peerConnection.createAnswer({});
-                await peerConnection.setLocalDescription(answer);
-
-                client?.sendDataMessage(userId, {'type': 'answer', answer});
-            }
-
-            if (message.type === 'answer') {
-                await peerConnection.setRemoteDescription(message.answer);
-            }
-
-            if (message.type === 'candidate') {
-                await peerConnection.addIceCandidate(message.candidate);
-            }
-        };
-        client.onTextMessage = (userId: string, message: string) => {
-            log(`onTextMessage (${userId}): ${message}`);
-        };
-
-        client.connect()
+        })
             .then(() => {
                 log(`Connected`);
             })

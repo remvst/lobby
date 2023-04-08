@@ -16,7 +16,7 @@ export class LobbyController {
     private readonly logger: Logger;
 
     private readonly users = new Map<string, User>();
-    private readonly lobby: Lobby;
+    readonly lobby: Lobby;
 
     onClose: () => void;
 
