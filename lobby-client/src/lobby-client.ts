@@ -1,7 +1,7 @@
 import { Lobby } from "../../shared/lobby";
 import { Socket, io } from "socket.io-client";
 import { AnyMessage, DataMessage, SetMetadataMessage, TextMessage } from '../../shared/message';
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, ListLobbiesResponse, User } from "../../shared/api";
+import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, ListLobbiesResponse, User } from "../../shared/api";
 
 export enum ConnectionState {
     DISCONNECTED = 'disconnected',
@@ -17,6 +17,7 @@ export default class LobbyClient {
 
     userId: string;
     lobby: Lobby;
+    token: string;
 
     connectionState: ConnectionState = ConnectionState.DISCONNECTED;
     
@@ -89,8 +90,9 @@ export default class LobbyClient {
         });
 
         const json = await resp.json() as CreateLobbyResponse;
-        const { token, userId } = json;
-        this.userId = userId;
+        const { token, user } = json;
+        this.userId = user.id;
+        this.token = token;
         return await this.connect({ token });
     }
 
@@ -110,8 +112,9 @@ export default class LobbyClient {
         });
 
         const json = await resp.json() as JoinLobbyResponse;
-        const { token, userId } = json;
-        this.userId = userId;
+        const { token, user } = json;
+        this.userId = user.id;
+        this.token = token;
         return await this.connect({ token });
     }
 
@@ -166,6 +169,18 @@ export default class LobbyClient {
     async disconnect() {
         this.socket.disconnect();
         this.socket = null;
+
+        await fetch(`${this.url}/leave`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                token: this.token,
+            } as LeaveLobbyRequest),
+        });
+
+        this.token = null;
     }
 
 }

@@ -86,7 +86,7 @@ window.addEventListener('load', () => {
     }
 
     dom.create.addEventListener('click', () => {
-        log(`Connecting...`);
+        log(`Creating...`);
 
         client.createAndJoin({
             lobbyDisplayName: dom.lobbyDisplayName.value,
@@ -99,7 +99,7 @@ window.addEventListener('load', () => {
     }, false);
 
     dom.join.addEventListener('click', () => {
-        log(`Connecting...`);
+        log(`Joining...`);
 
         const lobbyId = dom.lobbyId.value;
 
@@ -146,7 +146,7 @@ window.addEventListener('load', () => {
     }, false);
 
     dom.increaseScore.addEventListener('click', () => {
-        log(`Increasing my score`);
+        log(`Increasing my score` + client.userId);
 
         const myUser = client.lobby.participants.filter(p => p.id === client.userId)[0];
         const newScore = (myUser.metadata.score || 0) + 1;
