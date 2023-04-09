@@ -1,10 +1,11 @@
 {
   "name": "@remvst/lobby-server",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "",
-  "main": "src/index.ts",
+  "main": "lib/lobby-server/src/index.js",
   "scripts": {
-    "prepublishOnly": "npm i"
+    "build": "rm -rf lib && tsc",
+    "prepublishOnly": "npm i && npm run build"
   },
   "author": "",
   "license": "ISC",
