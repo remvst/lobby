@@ -1,3 +1,4 @@
+import { LargeNumberLike } from 'crypto';
 import { Lobby } from './lobby';
 
 export interface ListLobbiesRequest {
@@ -33,5 +34,6 @@ export interface JoinLobbyResponse {
 export interface User {
     id: string;
     displayName: string;
+    lastConnected: number;
     metadata: {[key: string]: any};
 }

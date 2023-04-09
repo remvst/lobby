@@ -1,7 +1,7 @@
 import { Lobby } from "../../shared/lobby";
 import { Socket, io } from "socket.io-client";
 import { AnyMessage, DataMessage, SetMetadataMessage, TextMessage } from '../../shared/message';
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, ListLobbiesResponse } from "../../shared/api";
+import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, ListLobbiesResponse, User } from "../../shared/api";
 
 export enum ConnectionState {
     DISCONNECTED = 'disconnected',
@@ -13,6 +13,7 @@ export default class LobbyClient {
 
     private socket: Socket;
     private url: string;
+    private readonly users = new Map<string, User>();
 
     userId: string;
     lobby: Lobby;
@@ -24,10 +25,14 @@ export default class LobbyClient {
     onDataMessage: (userId: string, message: any) => void = () => {};
     onConnectionStateChanged: (state: ConnectionState) => void = () => {};
 
-    constructor(readonly opts: {
+    constructor(opts: {
         readonly url: string,
     }) {
         this.url = opts.url;
+    }
+
+    user(id: string): User {
+        return this.users.get(id);
     }
 
     private setConnectionState(state: ConnectionState) {
@@ -116,7 +121,7 @@ export default class LobbyClient {
         return new Promise<void>((resolve, reject) => {
             this.setConnectionState(ConnectionState.CONNECTING);
 
-            this.socket = io(this.opts.url, {
+            this.socket = io(this.url, {
                 reconnection: false,
                 query: {
                     token: opts.token,
@@ -144,6 +149,9 @@ export default class LobbyClient {
             break;
         case 'lobby-updated':
             this.lobby = message.lobby;
+            for (const user of this.lobby.participants) {
+                this.users.set(user.id, user);
+            }
             this.onLobbyUpdated(this.lobby);
             break;
         case 'text-message':

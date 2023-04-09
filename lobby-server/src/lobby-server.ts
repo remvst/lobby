@@ -64,6 +64,7 @@ export default class LobbyServer {
             lobbyController.add({
                 id: userId,
                 displayName: request.playerDisplayName,
+                lastConnected: null,
                 metadata: {},
             }, null);
             lobbyController.onClose = () => this.lobbies.delete(lobbyId);
@@ -99,6 +100,7 @@ export default class LobbyServer {
             lobbyController.add({
                 id: userId,
                 displayName: request.playerDisplayName,
+                lastConnected: null,
                 metadata: {},
             }, null);
 

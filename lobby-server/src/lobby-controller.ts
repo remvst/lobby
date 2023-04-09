@@ -61,6 +61,7 @@ export class LobbyController {
         }
 
         userHolder.socket = socket;
+        userHolder.user.lastConnected = Date.now();
         socket.on('disconnect', () => this.remove(userId));
         socket.on('message', (message) => this.onMessage(userId, message));
 
