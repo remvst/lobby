@@ -134,7 +134,10 @@ export default class LobbyClient {
                 this.setConnectionState(ConnectionState.CONNECTED);
                 resolve();
             });
-            this.socket.on('disconnect', () => this.setConnectionState(ConnectionState.DISCONNECTED));
+            this.socket.on('disconnect', () => {
+                this.setConnectionState(ConnectionState.DISCONNECTED);
+                reject(new Error('Disconnected'));
+            });
             this.socket.on('connect_error', (err) => reject(err));
             this.socket.on('connect_timeout', (err) => reject(err));
             this.socket.on('msg', (msg) => this.onMessage(msg));

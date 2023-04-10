@@ -305,15 +305,12 @@ export default class LobbyServer {
     private async leaveLobby(lobby: Lobby, userId: string) {
         lobby.participants = lobby.participants.filter(p => p.id !== userId);
 
-        if (lobby.leader === userId) {
+        if (!lobby.participants.length || lobby.leader === userId) {
             await this.deleteLobby(lobby.id);
         } else {
             await this.updateLobby(lobby);
         }
 
-        const controller = this.lobbies.get(lobby.id);
-        if (controller) {
-            controller.sockets.get(userId)?.disconnect();
-        }
+        this.lobbies.get(lobby.id)?.sockets?.get(userId)?.disconnect();
     }
 }
