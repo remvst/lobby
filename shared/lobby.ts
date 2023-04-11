@@ -5,5 +5,6 @@ export interface Lobby {
     displayName: string;
     leader: string;
     participants: User[];
+    created: number;
     lastUpdate: number;
 }

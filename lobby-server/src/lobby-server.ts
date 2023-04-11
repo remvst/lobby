@@ -110,6 +110,7 @@ export default class LobbyServer {
                 'displayName': request.lobbyDisplayName,
                 'leader': user.id,
                 'participants': [user],
+                'created': Date.now(),
                 'lastUpdate': Date.now(),
             };
 
@@ -305,9 +306,14 @@ export default class LobbyServer {
     private async leaveLobby(lobby: Lobby, userId: string) {
         lobby.participants = lobby.participants.filter(p => p.id !== userId);
 
-        if (!lobby.participants.length || lobby.leader === userId) {
+        if (!lobby.participants.length) {
             await this.deleteLobby(lobby.id);
         } else {
+            // Transfer ownership of the lobby
+            if (lobby.leader === userId) {
+                lobby.leader = lobby.participants[0].id;
+            }
+
             await this.updateLobby(lobby);
         }
 

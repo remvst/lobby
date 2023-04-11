@@ -5,7 +5,7 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "start": "ts-node src/index.ts | bunyan"
+    "start": "npm --prefix ../../lobby-server run build && ts-node src/index.ts | bunyan"
   },
   "dependencies": {
     "@remvst/lobby-server": "file:../../lobby-server",

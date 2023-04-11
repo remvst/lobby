@@ -11,7 +11,7 @@ export class InMemoryStorage implements Storage {
 
     private readonly lobbies = new Map<string, string>();
     
-    constructor(private readonly maxDelay: number) {
+    constructor(private readonly maxDelay: number = 0) {
         
     }
 
