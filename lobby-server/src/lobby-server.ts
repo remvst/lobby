@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { LobbyController } from "./lobby-controller";
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse } from '../../shared/api';
+import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, User } from '../../shared/api';
 import { createLogger } from "bunyan";
 import http from 'http';
 import express from 'express';
@@ -98,20 +98,22 @@ export default class LobbyServer {
                 return;
             }
 
-            const user = {
+            const user: User = {
                 id: uuidv4(),
                 displayName: request.playerDisplayName,
                 lastConnected: 0,
+                connected: false,
                 metadata: {},
             };
 
-            const lobby = {
-                'id': uuidv4(),
-                'displayName': request.lobbyDisplayName,
-                'leader': user.id,
-                'participants': [user],
-                'created': Date.now(),
-                'lastUpdate': Date.now(),
+            const lobby: Lobby = {
+                id: uuidv4(),
+                displayName: request.lobbyDisplayName,
+                leader: user.id,
+                maxParticipants: 8, // hardcode for now
+                participants: [user],
+                created: Date.now(),
+                lastUpdate: Date.now(),
             };
 
             await this.updateLobby(lobby);
@@ -149,9 +151,15 @@ export default class LobbyServer {
                 return;
             }
 
-            const user = {
+            if (lobby.participants.length >= lobby.maxParticipants) {
+                res.status(403).json({'reason': 'Lobby is full'});
+                return;
+            }
+
+            const user: User = {
                 id: uuidv4(),
                 displayName: request.playerDisplayName,
+                connected: false,
                 lastConnected: 0,
                 metadata: {},
             };
@@ -215,6 +223,7 @@ export default class LobbyServer {
         }
 
         user.lastConnected = Date.now();
+        user.connected = true;
 
         if (!this.lobbies.has(lobbyId)) {
             this.lobbies.set(lobbyId, new LobbyController());
@@ -225,7 +234,25 @@ export default class LobbyServer {
 
         await this.updateLobby(lobby);
 
-        socket.on('disconnect', () => {
+        socket.on('disconnect', async () => {
+            const controller = this.lobbies.get(lobbyId);
+            controller.sockets.delete(userId);
+
+            const lobby = await this.storage.getLobby(lobbyId);
+            const user = lobby.participants.find(p => p.id === userId);
+            user.connected = false;
+            if (!user) return;
+
+            // If everyone is disconnected, close the lobby entirely
+            const connectedUsers = lobby.participants.filter(p => p.connected);
+            if (connectedUsers.length === 0) {
+                await this.deleteLobby(lobbyId);
+                return;
+            }
+
+            // Otherwise, update the lobby and schedule an autokick
+            await this.updateLobby(lobby);
+
             this.taskQueue.schedule({
                 scheduledTime: Date.now() + MAX_DISCONNECTION_TIME,
                 type: 'auto-kick',

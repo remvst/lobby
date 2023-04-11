@@ -40,6 +40,7 @@ export interface LeaveLobbyResponse {
 export interface User {
     id: string;
     displayName: string;
+    connected: boolean;
     lastConnected: number;
     metadata: {[key: string]: any};
 }
