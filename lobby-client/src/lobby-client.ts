@@ -1,7 +1,7 @@
 import { Lobby } from "../../shared/lobby";
 import { Socket, io } from "socket.io-client";
-import { AnyMessage, DataMessage, SetMetadataMessage, TextMessage } from '../../shared/message';
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, ListLobbiesResponse, User } from "../../shared/api";
+import { AnyMessage, DataMessage, SetMetadataMessage, StatusMessage, TextMessage } from '../../shared/message';
+import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, ListLobbiesRequest, ListLobbiesResponse, User } from "../../shared/api";
 
 export enum ConnectionState {
     DISCONNECTED = 'disconnected',
@@ -12,7 +12,8 @@ export enum ConnectionState {
 export default class LobbyClient {
 
     private socket: Socket;
-    private url: string;
+    private readonly url: string;
+    private readonly game: string;
     private readonly users = new Map<string, User>();
 
     userId: string;
@@ -23,13 +24,16 @@ export default class LobbyClient {
     
     onLobbyUpdated: (lobby: Lobby) => void = () => {};
     onTextMessage: (userId: string, message: string) => void = () => {};
+    onStatusMessage: (message: string) => void = () => {};
     onDataMessage: (userId: string, message: any) => void = () => {};
     onConnectionStateChanged: (state: ConnectionState) => void = () => {};
 
     constructor(opts: {
         readonly url: string,
+        readonly game: string,
     }) {
         this.url = opts.url;
+        this.game = opts.game;
     }
 
     user(id: string): User {
@@ -58,6 +62,14 @@ export default class LobbyClient {
         } as DataMessage);
     }
 
+    sendStatusMessage(message: string) {
+        this.socket.emit('message', {
+            'fromUserId': this.userId,
+            'message': message,
+            'type': 'status-message',
+        } as StatusMessage);
+    }
+
     setMetadata(userId: string, key: string, value: any) {
         this.socket.emit('message', {
             'fromUserId': this.userId,
@@ -69,7 +81,11 @@ export default class LobbyClient {
     }
 
     async listLobbies(): Promise<Lobby[]> {
-        const resp = await fetch(`${this.url}/lobbies`);
+        const request: ListLobbiesRequest = {
+            game: this.game,
+        };
+        const resp = await fetch(`${this.url}/lobbies?` + new URLSearchParams(request as any).toString());
+        if (!resp.ok) throw new Error(`Failed to list lobbies`);
         const json = await resp.json() as ListLobbiesResponse;
         return json.lobbies;
     }
@@ -84,10 +100,12 @@ export default class LobbyClient {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                game: this.game,
                 lobbyDisplayName: opts.lobbyDisplayName,
                 playerDisplayName: opts.playerDisplayName,
             } as CreateLobbyRequest),
         });
+        if (!resp.ok) throw new Error(`Failed to create lobby`);
 
         const json = await resp.json() as CreateLobbyResponse;
         const { token, user } = json;
@@ -110,6 +128,7 @@ export default class LobbyClient {
                 playerDisplayName: opts.playerDisplayName,
             } as JoinLobbyRequest),
         });
+        if (!resp.ok) throw new Error(`Failed to join lobby`);
 
         const json = await resp.json() as JoinLobbyResponse;
         const { token, user } = json;
@@ -140,7 +159,7 @@ export default class LobbyClient {
             });
             this.socket.on('connect_error', (err) => reject(err));
             this.socket.on('connect_timeout', (err) => reject(err));
-            this.socket.on('msg', (msg) => this.onMessage(msg));
+            this.socket.on('message', (message) => this.onMessage(message));
             this.socket.connect();
         });
     }
@@ -165,6 +184,9 @@ export default class LobbyClient {
             break;
         case 'data':
             this.onDataMessage(message.fromUserId, message.data);
+            break;
+        case 'status-message':
+            this.onStatusMessage(message.message);
             break;
         }
     }

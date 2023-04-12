@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
       "build": "rm -rf lib && tsc",
-      "start": "webpack serve --open --config webpack.dev.js"
+      "start": "npm --prefix ../../lobby-client run build && webpack serve --open --config webpack.dev.js"
     },
     "author": "",
     "license": "ISC",

@@ -1,7 +1,7 @@
 import { Lobby } from './lobby';
 
 export interface ListLobbiesRequest {
-
+    game: string;
 }
 
 export interface ListLobbiesResponse {
@@ -11,6 +11,7 @@ export interface ListLobbiesResponse {
 export interface CreateLobbyRequest {
     lobbyDisplayName: string;
     playerDisplayName: string;
+    game: string;
 }
 
 export interface CreateLobbyResponse {

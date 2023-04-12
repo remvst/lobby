@@ -4,6 +4,7 @@ import { LobbyClient } from '@remvst/lobby-client';
 window.addEventListener('load', () => {
     const client: LobbyClient = new LobbyClient({
         'url': 'http://localhost:9000',
+        'game': 'lobby-demo',
     });
 
     const dom = {
@@ -22,6 +23,8 @@ window.addEventListener('load', () => {
         dataRecipient: document.querySelector('#data-recipient') as HTMLSelectElement,
         sendData: document.querySelector('#send-data') as HTMLButtonElement,
         increaseScore: document.querySelector('#increase-score') as HTMLButtonElement,
+        statusMessage: document.querySelector('#status-message') as HTMLButtonElement,
+        sendStatus: document.querySelector('#send-status') as HTMLButtonElement,
     };
 
     dom.playerDisplayName.value = dom.playerDisplayName.value || `user-${~~(Math.random() * 100)}`;
@@ -50,12 +53,15 @@ window.addEventListener('load', () => {
     client.onTextMessage = (userId: string, message: string) => {
         log(`onTextMessage (${userId}): ${message}`);
     };
+    client.onStatusMessage = (message: string) => {
+        log(`onStatusMessage: ${message}`);
+    };
 
-    function log(msg: string) {
-        console.log(msg);
+    function log(message: string) {
+        console.log(message);
 
         const logElement = document.createElement('div');
-        logElement.innerText = msg;
+        logElement.innerText = message;
         dom.log.appendChild(logElement);
     }
 
@@ -65,21 +71,21 @@ window.addEventListener('load', () => {
             dom.create.disabled = dom.join.disabled = true;
             dom.disconnect.disabled = false;
             dom.playerDisplayName.disabled = dom.lobbyId.disabled = dom.lobbyDisplayName.disabled = true;
-            dom.sendText.disabled = dom.textMessage.disabled = false;
+            dom.sendText.disabled = dom.textMessage.disabled = dom.sendStatus.disabled = false;
             dom.increaseScore.disabled = false;
             break;
         case ConnectionState.CONNECTING: 
             dom.create.disabled = dom.join.disabled = true;
             dom.disconnect.disabled = false;
             dom.playerDisplayName.disabled = dom.lobbyId.disabled = dom.lobbyDisplayName.disabled = true;
-            dom.sendText.disabled = dom.textMessage.disabled = true;
+            dom.sendText.disabled = dom.textMessage.disabled = dom.sendStatus.disabled = true;
             dom.increaseScore.disabled = true;
             break;
         case ConnectionState.DISCONNECTED:
             dom.create.disabled = dom.join.disabled = false;
             dom.disconnect.disabled = true;
             dom.playerDisplayName.disabled = dom.lobbyId.disabled = dom.lobbyDisplayName.disabled = false;
-            dom.sendText.disabled = dom.textMessage.disabled = true;
+            dom.sendText.disabled = dom.textMessage.disabled = dom.sendStatus.disabled = true;
             dom.increaseScore.disabled = false;
             break;
         }
@@ -143,6 +149,11 @@ window.addEventListener('load', () => {
     dom.sendData.addEventListener('click', () => {
         log(`Sending data message`);
         client?.sendDataMessage(dom.dataRecipient.value, dom.dataMessage.value);
+    }, false);
+
+    dom.sendStatus.addEventListener('click', () => {
+        log(`Sending status message`);
+        client?.sendStatusMessage(dom.statusMessage.value);
     }, false);
 
     dom.increaseScore.addEventListener('click', () => {

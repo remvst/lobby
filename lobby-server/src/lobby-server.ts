@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { LobbyController } from "./lobby-controller";
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, User } from '../../shared/api';
+import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, ListLobbiesRequest, User } from '../../shared/api';
 import { createLogger } from "bunyan";
 import http from 'http';
 import express from 'express';
@@ -62,8 +62,16 @@ export default class LobbyServer {
             this.onNewConnection(socket);
         });
 
-        app.get('/lobbies', async (_, res) => {
-            const lobbies = await this.storage.getLobbies();
+        app.get('/lobbies', async (req, res) => {
+            const request: ListLobbiesRequest = req.query;
+
+            const { game } = request;
+            if (!game) {
+                res.status(400).json({'reason': 'Missing game parameter'});
+                return;
+            }
+
+            const lobbies = await this.storage.getLobbies(game);
             res.json({ lobbies });
         });
 
@@ -92,15 +100,16 @@ export default class LobbyServer {
 
         app.post('/create', async (req, res) => {
             const request: CreateLobbyRequest = req.body;
+            const { lobbyDisplayName, playerDisplayName, game } = request;
 
-            if (!request.lobbyDisplayName || !request.playerDisplayName) {
+            if (!lobbyDisplayName || !playerDisplayName || !game) {
                 res.status(400).json({'reason': 'Missing parameter'});
                 return;
             }
 
             const user: User = {
                 id: uuidv4(),
-                displayName: request.playerDisplayName,
+                displayName: playerDisplayName,
                 lastConnected: 0,
                 connected: false,
                 metadata: {},
@@ -108,8 +117,9 @@ export default class LobbyServer {
 
             const lobby: Lobby = {
                 id: uuidv4(),
-                displayName: request.lobbyDisplayName,
+                displayName: lobbyDisplayName,
                 leader: user.id,
+                game: game,
                 maxParticipants: 8, // hardcode for now
                 participants: [user],
                 created: Date.now(),
@@ -137,13 +147,12 @@ export default class LobbyServer {
 
         app.post('/join', async (req, res) => {
             const request: JoinLobbyRequest = req.body;
+            const { playerDisplayName, lobbyId } = request;
 
-            if (!request.playerDisplayName) {
+            if (!playerDisplayName) {
                 res.status(400).json({'reason': 'Missing parameter'});
                 return;
             }
-
-            const { lobbyId } = request;
 
             const lobby = await this.storage.getLobby(lobbyId);
             if (!lobby) {
@@ -158,7 +167,7 @@ export default class LobbyServer {
 
             const user: User = {
                 id: uuidv4(),
-                displayName: request.playerDisplayName,
+                displayName: playerDisplayName,
                 connected: false,
                 lastConnected: 0,
                 metadata: {},
@@ -275,9 +284,9 @@ export default class LobbyServer {
                 const controller = this.lobbies.get(lobbyId);
                 if (!controller) return;
                 for (const socket of controller.sockets.values()) {
-                    socket.emit('msg', message);
+                    socket.emit('message', message);
                 }
-            } 
+            }
             break;
         case 'data':
             {
@@ -286,16 +295,29 @@ export default class LobbyServer {
                 if (!controller) return;
                 const socket = controller.sockets.get(message.toUserId);
                 if (!socket) return;
-                socket.emit('msg', message);
+                socket.emit('message', message);
             }
             break;
         case 'set-metadata':
             {
                 const lobby = await this.storage.getLobby(lobbyId);
+                if (message.userId !== fromUserId && fromUserId !== lobby.leader) return;
                 const user = lobby?.participants?.find(p => p.id === message.userId);
                 if (!user) return;
                 user.metadata[message.key] = message.value;
                 this.updateLobby(lobby);
+            }
+            break;
+        case 'status-message':
+            {
+                const lobby = await this.storage.getLobby(lobbyId);
+                if (lobby?.leader !== fromUserId) return;
+
+                const controller = this.lobbies.get(lobbyId);
+                if (!controller) return;
+                for (const socket of controller.sockets.values()) {
+                    socket.emit('message', message);
+                }
             }
             break;
         }
@@ -311,7 +333,7 @@ export default class LobbyServer {
         const controller = this.lobbies.get(lobby.id);
         if (!controller) return;
         for (const socket of controller.sockets.values()) {
-            socket.emit('msg', {
+            socket.emit('message', {
                 'type': 'lobby-updated',
                 lobby,
             } as LobbyUpdated);

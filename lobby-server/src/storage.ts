@@ -1,7 +1,7 @@
 import { Lobby } from '../../shared/lobby';
 
 export interface Storage {
-    getLobbies(): Promise<Lobby[]>;
+    getLobbies(game: string): Promise<Lobby[]>;
     getLobby(id: string): Promise<Lobby>;
     updateLobby(lobby: Lobby): Promise<void>;
     deleteLobby(id: string): Promise<void>;
@@ -19,9 +19,11 @@ export class InMemoryStorage implements Storage {
         return new Promise(r => setTimeout(r, Math.random() * this.maxDelay));
     }
 
-    async getLobbies(): Promise<Lobby[]> {
+    async getLobbies(game: string): Promise<Lobby[]> {
         await this.randomDelay();
-        return Array.from(this.lobbies.values()).map(l => JSON.parse(l) as Lobby);
+        return Array.from(this.lobbies.values())
+            .map(l => JSON.parse(l) as Lobby)
+            .filter(lobby => lobby.game === game);
     }
 
     async getLobby(id: string): Promise<Lobby | null> {

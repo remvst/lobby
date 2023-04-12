@@ -26,6 +26,11 @@ export interface TextMessage extends Message {
     message: string;
 }
 
+export interface StatusMessage extends Message {
+    type: 'status-message';
+    message: string;
+}
+
 export interface SetMetadataMessage extends Message {
     type: 'set-metadata';
     userId: string;
@@ -33,4 +38,4 @@ export interface SetMetadataMessage extends Message {
     value: any;
 }
 
-export type AnyMessage = LobbyUpdated | LobbyClosed | DataMessage | TextMessage | SetMetadataMessage;
+export type AnyMessage = LobbyUpdated | LobbyClosed | DataMessage | TextMessage | SetMetadataMessage | StatusMessage;
