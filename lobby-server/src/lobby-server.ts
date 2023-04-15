@@ -169,7 +169,7 @@ export default class LobbyServer {
             const request: JoinLobbyRequest = req.body;
             const { playerDisplayName, lobbyId, game } = request;
 
-            if (!playerDisplayName) {
+            if (!playerDisplayName || !lobbyId || !game) {
                 res.status(400).json({'reason': 'Missing parameter'});
                 return;
             }
