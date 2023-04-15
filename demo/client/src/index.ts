@@ -157,7 +157,7 @@ window.addEventListener('load', () => {
     }, false);
 
     dom.increaseScore.addEventListener('click', () => {
-        log(`Increasing my score` + client.userId);
+        log(`Increasing my score ` + client.userId);
 
         const myUser = client.lobby.participants.filter(p => p.id === client.userId)[0];
         const newScore = (myUser.metadata.score || 0) + 1;

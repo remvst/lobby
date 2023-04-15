@@ -5,6 +5,7 @@ export interface TaskParams {
 }
 
 export interface AutoKickTaskPayload {
+    readonly game: string;
     readonly lobbyId: string;
     readonly userId: string;
     readonly lastConnected: number;

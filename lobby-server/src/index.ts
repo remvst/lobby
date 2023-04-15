@@ -1,10 +1,11 @@
 import { LobbyController } from "./lobby-controller";
 import LobbyServer from "./lobby-server";
-import { Storage, InMemoryStorage } from "./storage";
+import RedisStorage from "./storage/redis-storage";
+import { Storage } from "./storage/storage";
 
 export {
     LobbyServer,
     LobbyController,
     Storage,
-    InMemoryStorage,
+    RedisStorage,
 }

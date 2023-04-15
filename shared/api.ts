@@ -9,9 +9,9 @@ export interface ListLobbiesResponse {
 }
 
 export interface CreateLobbyRequest {
+    game: string;
     lobbyDisplayName: string;
     playerDisplayName: string;
-    game: string;
 }
 
 export interface CreateLobbyResponse {
@@ -21,6 +21,7 @@ export interface CreateLobbyResponse {
 }
 
 export interface JoinLobbyRequest {
+    game: string;
     lobbyId: string;
     playerDisplayName: string;
 }

@@ -1,20 +1,24 @@
 import { Server, Socket } from "socket.io";
 import { LobbyController } from "./lobby-controller";
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, ListLobbiesRequest, User } from '../../shared/api';
+import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, ListLobbiesRequest, ListLobbiesResponse, User } from '../../shared/api';
 import { createLogger } from "bunyan";
 import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { TokenFormat } from "./token";
+import { TokenFormat } from "./model/token";
 import TaskQueue from "./task-queue";
 import { AutoKickTaskPayload } from "./task-params";
-import { Storage } from './storage';
+import { Storage } from './storage/storage';
 import { AnyMessage, LobbyUpdated } from "../../shared/message";
 import { Lobby } from "../../shared/lobby";
+import { LobbyDetails } from "./model/lobby-details";
 
 const MAX_DISCONNECTION_TIME = 15000;
+const ONE_SECOND = 1000;
+const ONE_MINUTE = ONE_SECOND * 60;
+const ONE_HOUR = ONE_MINUTE * 60;
 
 export default class LobbyServer {
 
@@ -30,12 +34,12 @@ export default class LobbyServer {
         this.storage = options.storage;
 
         this.taskQueue.defineExecutor<AutoKickTaskPayload>('auto-kick', async payload => {
-            const { lobbyId, userId } = payload;
-            const lobby = await this.storage.getLobby(lobbyId);
+            const { lobbyId, userId, game } = payload;
+            const lobby = await this.storage.lobbies(game).item(lobbyId).get();
             if (!lobby) return;
 
-            const user = lobby.participants.find(p => p.id === userId);
-            if (!user || user.lastConnected !== payload.lastConnected) return;
+            const participant = await this.storage.participants(lobby.id).item(userId).get();
+            if (!participant || participant.lastConnected !== payload.lastConnected) return;
 
             this.logger.info('Autokicking', { lobbyId, userId });
 
@@ -71,8 +75,25 @@ export default class LobbyServer {
                 return;
             }
 
-            const lobbies = await this.storage.getLobbies(game);
-            res.json({ lobbies });
+            const lobbyDetails: LobbyDetails[] = Array.from((await this.storage.lobbies(game).entries()).values());
+            
+            const allLobbies = await Promise.all(lobbyDetails
+                .map(async (details) => {
+                    const entries = await this.storage.participants(details.id).entries();
+                    const lobby: Lobby = {
+                        ...details,
+                        participants: Array.from(entries.values()),
+                    };
+                    return lobby;  
+                })
+            );
+            const lobbies = allLobbies
+                .filter(lobby => lobby.participants.length > 0)
+                .filter(lobby => Date.now() - lobby.lastUpdate < 2 * ONE_HOUR)
+                .filter(lobby => lobby.participants.filter(p => p.connected).length > 0);
+            const response: ListLobbiesResponse = { lobbies };
+
+            res.json(response);
         });
 
         app.post('/leave', async (req, res) => {
@@ -88,7 +109,7 @@ export default class LobbyServer {
             }
 
             const { lobbyId, userId } = decoded.data as TokenFormat;
-            const lobby = await this.storage.getLobby(lobbyId);
+            const lobby = await this.storage.lobbies(lobbyId).item(lobbyId).get();
             if (!lobby) {
                 res.status(404).json({'reason': 'Lobby not found'});
                 return;
@@ -115,22 +136,21 @@ export default class LobbyServer {
                 metadata: {},
             };
 
-            const lobby: Lobby = {
+            const lobby: LobbyDetails = {
                 id: uuidv4(),
                 displayName: lobbyDisplayName,
                 leader: user.id,
                 game: game,
                 maxParticipants: 8, // hardcode for now
-                participants: [user],
                 created: Date.now(),
                 lastUpdate: Date.now(),
             };
 
+            await this.storage.participants(lobby.id).item(user.id).set(user);
             await this.updateLobby(lobby);
 
-            const token = jwt.sign({
-                data: { userId: user.id, lobbyId: lobby.id } as TokenFormat
-            }, this.options.secretKey);
+            const data: TokenFormat = { userId: user.id, lobbyId: lobby.id, game };
+            const token = jwt.sign({ data }, this.options.secretKey);
 
             this.taskQueue.schedule({
                 scheduledTime: Date.now() + MAX_DISCONNECTION_TIME,
@@ -147,20 +167,21 @@ export default class LobbyServer {
 
         app.post('/join', async (req, res) => {
             const request: JoinLobbyRequest = req.body;
-            const { playerDisplayName, lobbyId } = request;
+            const { playerDisplayName, lobbyId, game } = request;
 
             if (!playerDisplayName) {
                 res.status(400).json({'reason': 'Missing parameter'});
                 return;
             }
 
-            const lobby = await this.storage.getLobby(lobbyId);
+            const lobby = await this.storage.lobbies(game).item(lobbyId).get();
             if (!lobby) {
                 res.status(404).json({'reason': 'Lobby not found'});
                 return;
             }
 
-            if (lobby.participants.length >= lobby.maxParticipants) {
+            const participantCount = await this.storage.participants(lobbyId).size();
+            if (participantCount >= lobby.maxParticipants) {
                 res.status(403).json({'reason': 'Lobby is full'});
                 return;
             }
@@ -172,8 +193,7 @@ export default class LobbyServer {
                 lastConnected: 0,
                 metadata: {},
             };
-            lobby.participants.push(user);
-
+            await this.storage.participants(lobbyId).item(user.id).set(user);
             await this.updateLobby(lobby);
 
             this.taskQueue.schedule({
@@ -186,9 +206,8 @@ export default class LobbyServer {
                 } as AutoKickTaskPayload,
             });
 
-            const token = jwt.sign({
-                data: { userId: user.id, lobbyId } as TokenFormat
-            }, this.options.secretKey);
+            const data: TokenFormat = { userId: user.id, lobbyId, game };
+            const token = jwt.sign({ data }, this.options.secretKey);
 
             res.json({
                 token,
@@ -217,22 +236,24 @@ export default class LobbyServer {
             return;
         }
 
-        const { lobbyId, userId } = decoded.data as TokenFormat;
-        const lobby = await this.storage.getLobby(lobbyId);
+        const { lobbyId, userId, game } = decoded.data as TokenFormat;
+        const lobby = await this.storage.lobbies(game).item(lobbyId).get();
         if (!lobby) {
             this.logger.info('Lobby not found', {lobbyId, lobby, lobbies: this.lobbies.keys()});
             socket.disconnect();
             return;
         }
 
-        const user = lobby.participants.find(p => p.id === userId);
+        const user = await this.storage.participants(lobbyId).item(userId).get();
         if (!user) {
+            this.logger.info('User not found', {lobbyId, lobby, lobbies: this.lobbies.keys()});
             socket.disconnect();
             return;
         }
 
         user.lastConnected = Date.now();
         user.connected = true;
+        await this.storage.participants(lobbyId).item(user.id).set(user);
 
         if (!this.lobbies.has(lobbyId)) {
             this.lobbies.set(lobbyId, new LobbyController());
@@ -247,15 +268,18 @@ export default class LobbyServer {
             const controller = this.lobbies.get(lobbyId);
             controller.sockets.delete(userId);
 
-            const lobby = await this.storage.getLobby(lobbyId);
-            const user = lobby.participants.find(p => p.id === userId);
-            user.connected = false;
+            const user = await this.storage.participants(lobbyId).item(userId).get();
             if (!user) return;
 
+            user.connected = false;
+            await this.storage.participants(lobbyId).item(userId).set(user);
+
             // If everyone is disconnected, close the lobby entirely
-            const connectedUsers = lobby.participants.filter(p => p.connected);
+
+            const users = await this.storage.participants(lobbyId).entries();
+            const connectedUsers = Array.from(users.values()).filter(p => p.connected);
             if (connectedUsers.length === 0) {
-                await this.deleteLobby(lobbyId);
+                await this.deleteLobby(game, lobbyId);
                 return;
             }
 
@@ -272,10 +296,10 @@ export default class LobbyServer {
                 } as AutoKickTaskPayload,
             });
         });
-        socket.on('message', (message) => this.onMessageReceived(lobbyId, userId, message));
+        socket.on('message', (message) => this.onMessageReceived(game, lobbyId, userId, message));
     }
 
-    private async onMessageReceived(lobbyId: string, fromUserId: string, message: AnyMessage) {
+    private async onMessageReceived(game: string, lobbyId: string, fromUserId: string, message: AnyMessage) {
         this.logger.info(`onMessage`, {fromUserId, message});
         switch (message.type) {
         case 'text-message': 
@@ -300,17 +324,18 @@ export default class LobbyServer {
             break;
         case 'set-metadata':
             {
-                const lobby = await this.storage.getLobby(lobbyId);
+                const lobby = await this.storage.lobbies(game).item(lobbyId).get();
                 if (message.userId !== fromUserId && fromUserId !== lobby.leader) return;
-                const user = lobby?.participants?.find(p => p.id === message.userId);
-                if (!user) return;
-                user.metadata[message.key] = message.value;
-                this.updateLobby(lobby);
+                const participant = await this.storage.participants(lobbyId).item(message.userId).get();
+                if (!participant) return;
+                participant.metadata[message.key] = message.value;
+                await this.storage.participants(lobby.id).item(participant.id).set(participant);
+                await this.updateLobby(lobby);
             }
             break;
         case 'status-message':
             {
-                const lobby = await this.storage.getLobby(lobbyId);
+                const lobby = await this.storage.lobbies(game).item(lobbyId).get();
                 if (lobby?.leader !== fromUserId) return;
 
                 const controller = this.lobbies.get(lobbyId);
@@ -323,13 +348,34 @@ export default class LobbyServer {
         }
     }
 
-    private async updateLobby(lobby: Lobby) {
+    private async updateLobby(lobby: LobbyDetails) {
         lobby.lastUpdate = Date.now();
-        await this.storage.updateLobby(lobby);
-        await this.notifyLobbyUpdated(lobby);    
+        await this.storage.lobbies(lobby.game).item(lobby.id).set(lobby);
+        await this.notifyLobbyUpdated(lobby.game, lobby.id);
     }
 
-    private async notifyLobbyUpdated(lobby: Lobby) {
+    private async lobby(game: string, lobbyId: string): Promise<Lobby> {
+        const lobby = await this.storage.lobbies(game).item(lobbyId).get();
+        if (!lobby) {
+            throw new Error('Lobby not found');   
+        }
+
+        const participants = await this.storage.participants(lobbyId).entries();
+        return {
+            id: lobby.id,
+            game: game,
+            displayName: lobby.displayName,
+            leader: lobby.leader,
+            maxParticipants: lobby.maxParticipants,
+            participants: Array.from(participants.values()),
+            created: lobby.created,
+            lastUpdate: lobby.lastUpdate,
+        };
+    }
+
+    private async notifyLobbyUpdated(game: string, lobbyId: string) {
+        const lobby = await this.lobby(game, lobbyId);
+
         const controller = this.lobbies.get(lobby.id);
         if (!controller) return;
         for (const socket of controller.sockets.values()) {
@@ -340,8 +386,8 @@ export default class LobbyServer {
         }
     }
 
-    private async deleteLobby(lobbyId: string) {
-        await this.storage.deleteLobby(lobbyId);
+    private async deleteLobby(game: string, lobbyId: string) {
+        await this.storage.lobbies(game).item(lobbyId).delete();
 
         const controller = this.lobbies.get(lobbyId);
         if (controller) {
@@ -352,15 +398,16 @@ export default class LobbyServer {
         }
     }
 
-    private async leaveLobby(lobby: Lobby, userId: string) {
-        lobby.participants = lobby.participants.filter(p => p.id !== userId);
+    private async leaveLobby(lobby: LobbyDetails, userId: string) {
+        await this.storage.participants(lobby.id).item(userId).delete();
 
-        if (!lobby.participants.length) {
-            await this.deleteLobby(lobby.id);
+        const newParticipantIds = await this.storage.participants(lobby.id).keys();
+        if (newParticipantIds.length === 0) {
+            await this.deleteLobby(lobby.game, lobby.id);
         } else {
             // Transfer ownership of the lobby
             if (lobby.leader === userId) {
-                lobby.leader = lobby.participants[0].id;
+                lobby.leader = newParticipantIds[0];
             }
 
             await this.updateLobby(lobby);

@@ -46,44 +46,46 @@ export default class LobbyClient {
     }
 
     sendTextMessage(message: string) {
-        this.socket.emit('message', {
+        const payload: TextMessage = {
             'fromUserId': this.userId,
             'message': message,
             'type': 'text-message',
-        } as TextMessage);
+        };
+        this.socket.emit('message', payload);
     }
 
     sendDataMessage(toUserId: string, data: any) {
-        this.socket.emit('message', {
+        const payload: DataMessage = {
             'fromUserId': this.userId,
             'toUserId': toUserId,
             'data': data,
             'type': 'data',
-        } as DataMessage);
+        };
+        this.socket.emit('message', payload);
     }
 
     sendStatusMessage(message: string) {
-        this.socket.emit('message', {
+        const payload: StatusMessage = {
             'fromUserId': this.userId,
             'message': message,
             'type': 'status-message',
-        } as StatusMessage);
+        };
+        this.socket.emit('message', payload);
     }
 
     setMetadata(userId: string, key: string, value: any) {
-        this.socket.emit('message', {
+        const payload: SetMetadataMessage = {
             'fromUserId': this.userId,
             'type': 'set-metadata',
             userId,
             key, 
             value,
-        } as SetMetadataMessage);
+        };
+        this.socket.emit('message', payload);
     }
 
     async listLobbies(): Promise<Lobby[]> {
-        const request: ListLobbiesRequest = {
-            game: this.game,
-        };
+        const request: ListLobbiesRequest = { game: this.game };
         const resp = await fetch(`${this.url}/lobbies?` + new URLSearchParams(request as any).toString());
         if (!resp.ok) throw new Error(`Failed to list lobbies`);
         const json = await resp.json() as ListLobbiesResponse;
@@ -94,16 +96,18 @@ export default class LobbyClient {
         readonly playerDisplayName: string,
         readonly lobbyDisplayName: string,
     }) {
+        const payload: CreateLobbyRequest = {
+            game: this.game,
+            lobbyDisplayName: opts.lobbyDisplayName,
+            playerDisplayName: opts.playerDisplayName,
+        };
+
         const resp = await fetch(`${this.url}/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                game: this.game,
-                lobbyDisplayName: opts.lobbyDisplayName,
-                playerDisplayName: opts.playerDisplayName,
-            } as CreateLobbyRequest),
+            body: JSON.stringify(payload),
         });
         if (!resp.ok) throw new Error(`Failed to create lobby`);
 
@@ -118,15 +122,18 @@ export default class LobbyClient {
         readonly playerDisplayName: string,
         readonly lobbyId: string,
     }) {
+        const payload: JoinLobbyRequest = {
+            game: this.game,
+            lobbyId: opts.lobbyId,
+            playerDisplayName: opts.playerDisplayName,
+        };
+
         const resp = await fetch(`${this.url}/join`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                lobbyId: opts.lobbyId,
-                playerDisplayName: opts.playerDisplayName,
-            } as JoinLobbyRequest),
+            body: JSON.stringify(payload),
         });
         if (!resp.ok) throw new Error(`Failed to join lobby`);
 
