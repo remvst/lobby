@@ -202,14 +202,16 @@ export default class LobbyClient {
         this.socket.disconnect();
         this.socket = null;
 
+        const request: LeaveLobbyRequest = {
+            token: this.token,
+        };
+
         await fetch(`${this.url}/leave`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                token: this.token,
-            } as LeaveLobbyRequest),
+            body: JSON.stringify(request),
         });
 
         this.token = null;

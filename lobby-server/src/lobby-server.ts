@@ -108,8 +108,8 @@ export default class LobbyServer {
                 return;
             }
 
-            const { lobbyId, userId } = decoded.data as TokenFormat;
-            const lobby = await this.storage.lobbies(lobbyId).item(lobbyId).get();
+            const { lobbyId, userId, game } = decoded.data as TokenFormat;
+            const lobby = await this.storage.lobbies(game).item(lobbyId).get();
             if (!lobby) {
                 res.status(404).json({'reason': 'Lobby not found'});
                 return;
