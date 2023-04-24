@@ -152,14 +152,17 @@ export default class LobbyServer {
             const data: TokenFormat = { userId: user.id, lobbyId: lobby.id, game };
             const token = jwt.sign({ data }, this.options.secretKey);
 
+            const payload: AutoKickTaskPayload = {
+                lobbyId: lobby.id,
+                userId: user.id,
+                lastConnected: user.lastConnected,
+                game,
+            };
+
             this.taskQueue.schedule({
                 scheduledTime: Date.now() + MAX_DISCONNECTION_TIME,
                 type: 'auto-kick',
-                payload: {
-                    lobbyId: lobby.id,
-                    userId: user.id,
-                    lastConnected: user.lastConnected,
-                } as AutoKickTaskPayload,
+                payload,
             });
 
             res.json({ token, user, lobby } as CreateLobbyResponse);
@@ -196,14 +199,17 @@ export default class LobbyServer {
             await this.storage.participants(lobbyId).item(user.id).set(user);
             await this.updateLobby(lobby);
 
+            const payload: AutoKickTaskPayload = {
+                lobbyId: lobby.id,
+                userId: user.id,
+                lastConnected: user.lastConnected,
+                game,
+            };
+
             this.taskQueue.schedule({
                 scheduledTime: Date.now() + MAX_DISCONNECTION_TIME,
                 type: 'auto-kick',
-                payload: {
-                    lobbyId: lobby.id,
-                    userId: user.id,
-                    lastConnected: user.lastConnected,
-                } as AutoKickTaskPayload,
+                payload,
             });
 
             const data: TokenFormat = { userId: user.id, lobbyId, game };
@@ -286,14 +292,17 @@ export default class LobbyServer {
             // Otherwise, update the lobby and schedule an autokick
             await this.updateLobby(lobby);
 
+            const payload: AutoKickTaskPayload = {
+                lobbyId: lobby.id,
+                userId: userId,
+                lastConnected: user.lastConnected,
+                game,
+            };
+
             this.taskQueue.schedule({
                 scheduledTime: Date.now() + MAX_DISCONNECTION_TIME,
                 type: 'auto-kick',
-                payload: {
-                    lobbyId: lobby.id,
-                    userId: userId,
-                    lastConnected: user.lastConnected,
-                } as AutoKickTaskPayload,
+                payload,
             });
         });
         socket.on('message', (message) => this.onMessageReceived(game, lobbyId, userId, message));
