@@ -199,7 +199,7 @@ export default class LobbyClient {
     }
 
     async disconnect() {
-        this.socket.disconnect();
+        this.socket?.disconnect();
         this.socket = null;
 
         const request: LeaveLobbyRequest = {
