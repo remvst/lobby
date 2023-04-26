@@ -199,9 +199,6 @@ export default class LobbyClient {
     }
 
     async disconnect() {
-        this.socket?.disconnect();
-        this.socket = null;
-
         const request: LeaveLobbyRequest = {
             token: this.token,
         };
@@ -214,6 +211,8 @@ export default class LobbyClient {
             body: JSON.stringify(request),
         });
 
+        this.socket?.disconnect();
+        this.socket = null;
         this.token = null;
     }
 
