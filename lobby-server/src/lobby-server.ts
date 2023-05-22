@@ -4,7 +4,6 @@ import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyRes
 import { createLogger } from "bunyan";
 import http from 'http';
 import express from 'express';
-import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { TokenFormat } from "./model/token";
@@ -47,19 +46,13 @@ export default class LobbyServer {
         });
     }
 
-    start(port: number) {
-        const app = express();
-        app.use(cors())
-
-        const server = http.createServer(app);
-
+    setup(server: http.Server, app: any) {
         const io = new Server(server, {
             cors: {
                 origin: "*",
                 methods: ["GET", "POST"]
             },
         });
-        app.use(cors());
         app.use(express.json());
 
         io.on("connection", (socket: Socket) => {
@@ -221,10 +214,6 @@ export default class LobbyServer {
                 lobby,
             } as JoinLobbyResponse);
         });
-
-        this.logger.info(`Starting lobby-server on port ${port}`);
-
-        server.listen(port, () => this.logger.info(`Ready`));
     }
 
     private async onNewConnection(socket: Socket) {
