@@ -3,6 +3,7 @@ import { RedisMemoryServer } from 'redis-memory-server';
 import { createClient } from 'redis';
 import express from 'express';
 import http from 'http';
+import cors from 'cors';
 
 (async () => {
     const redisServer = new RedisMemoryServer();
@@ -16,6 +17,8 @@ import http from 'http';
     await redisClient.connect();
 
     const app = express();
+    app.use(cors());
+
     const server = http.createServer(app);
 
     const lobbyServer = new LobbyServer({
