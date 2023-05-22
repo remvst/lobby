@@ -93,15 +93,15 @@ export default class LobbyServer {
             const request: LeaveLobbyRequest = req.body;
             const { token } = request;
 
-            let decoded;
+            let decoded: TokenFormat;
             try {
-                decoded = jwt.verify(token, this.options.secretKey);
+                decoded = this.verifyToken(token);
             } catch (err) {
                 res.status(400).json({'reason': 'Invalid token'});
                 return;
             }
 
-            const { lobbyId, userId, game } = decoded.data as TokenFormat;
+            const { lobbyId, userId, game } = decoded;
             const lobby = await this.storage.lobbies(game).item(lobbyId).get();
             if (!lobby) {
                 res.status(404).json({'reason': 'Lobby not found'});
@@ -216,22 +216,33 @@ export default class LobbyServer {
         });
     }
 
+    verifyToken(token: string): TokenFormat {
+        let decoded;
+        try {
+            decoded = jwt.verify(token, this.options.secretKey);
+        } catch (err) {
+            throw new Error('Invalid token');
+        }
+
+        return decoded.data as TokenFormat;
+    }
+
     private async onNewConnection(socket: Socket) {
         const { query } = socket.handshake;
         const { token } = query as {[key: string]: string};
 
         this.logger.info('New connection', { token });
 
-        let decoded;
+        let decoded: TokenFormat;
         try {
-            decoded = jwt.verify(token, this.options.secretKey);
+            decoded = this.verifyToken(token);
         } catch (err) {
             this.logger.info('Invalid token', err);
             socket.disconnect();
             return;
         }
 
-        const { lobbyId, userId, game } = decoded.data as TokenFormat;
+        const { lobbyId, userId, game } = decoded;
         const lobby = await this.storage.lobbies(game).item(lobbyId).get();
         if (!lobby) {
             this.logger.info('Lobby not found', {lobbyId, lobby, lobbies: this.lobbies.keys()});
