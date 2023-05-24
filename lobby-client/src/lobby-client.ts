@@ -86,10 +86,23 @@ export default class LobbyClient {
 
     async listLobbies(): Promise<Lobby[]> {
         const request: ListLobbiesRequest = { game: this.game };
-        const resp = await fetch(`${this.url}/lobbies?` + new URLSearchParams(request as any).toString());
-        if (!resp.ok) throw new Error(`Failed to list lobbies`);
+        const resp = await this.callApi(`/lobbies?` + new URLSearchParams(request as any).toString(), {
+            'method': 'GET',
+        });
         const json = await resp.json() as ListLobbiesResponse;
         return json.lobbies;
+    }
+
+    async callApi(path: string, extraInit: RequestInit): Promise<Body> {
+        const resp = await fetch(this.url + path, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            ...extraInit,
+        });
+        if (!resp.ok) throw new Error(`API ${path} returned error code ${resp.status}`);
+        return resp;
     }
 
     async createAndJoin(opts: {
@@ -102,14 +115,10 @@ export default class LobbyClient {
             playerDisplayName: opts.playerDisplayName,
         };
 
-        const resp = await fetch(`${this.url}/create`, {
+        const resp = await this.callApi(`/create`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(payload),
         });
-        if (!resp.ok) throw new Error(`Failed to create lobby`);
 
         const json = await resp.json() as CreateLobbyResponse;
         const { token, user } = json;
@@ -128,14 +137,10 @@ export default class LobbyClient {
             playerDisplayName: opts.playerDisplayName,
         };
 
-        const resp = await fetch(`${this.url}/join`, {
+        const resp = await this.callApi(`/join`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(payload),
         });
-        if (!resp.ok) throw new Error(`Failed to join lobby`);
 
         const json = await resp.json() as JoinLobbyResponse;
         const { token, user } = json;
@@ -203,11 +208,8 @@ export default class LobbyClient {
             token: this.token,
         };
 
-        await fetch(`${this.url}/leave`, {
+        await this.callApi(`/leave`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(request),
         });
 
