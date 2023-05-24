@@ -27,8 +27,9 @@ export default class LobbyServer {
     private readonly storage: Storage;
 
     constructor(private readonly options: {
-        secretKey: string,   
-        storage: Storage,
+        readonly secretKey: string,   
+        readonly storage: Storage,
+        readonly maxLobbyParticipants: number,
     }) {
         this.storage = options.storage;
 
@@ -134,7 +135,7 @@ export default class LobbyServer {
                 displayName: lobbyDisplayName,
                 leader: user.id,
                 game: game,
-                maxParticipants: 8, // hardcode for now
+                maxParticipants: this.options.maxLobbyParticipants,
                 created: Date.now(),
                 lastUpdate: Date.now(),
             };
