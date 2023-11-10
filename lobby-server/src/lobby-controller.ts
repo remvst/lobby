@@ -1,5 +1,5 @@
-import { Socket } from "socket.io";
+import { SocketController } from "../../shared/socket-controller";
 
 export class LobbyController {
-    readonly sockets = new Map<string, Socket>();
+    readonly sockets = new Map<string, SocketController>();
 }

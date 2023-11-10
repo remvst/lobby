@@ -46,3 +46,49 @@ export interface User {
     lastConnected: number;
     metadata: {[key: string]: any};
 }
+
+export interface SendTextMessageRequest {
+    game: string;
+    lobbyId: string;
+    fromUserId: string;
+    message: string;
+}
+
+export interface SendTextMessageResponse {
+
+}
+
+export interface SendDataMessageRequest {
+    game: string;
+    lobbyId: string;
+    fromUserId: string;
+    toUserId: string;
+    data: any;
+}
+
+export interface SendDataMessageResponse {
+
+}
+
+export interface SetMetadataRequest {
+    game: string;
+    lobbyId: string;
+    userId: string;
+    key: string;
+    value: number | boolean | string;
+}
+
+export interface SetMetadataResponse {
+
+}
+
+export interface SendStatusMessageRequest {
+    game: string;
+    lobbyId: string;
+    fromUserId: string;
+    message: string;
+}
+
+export interface SendStatusMessageResponse {
+
+}
