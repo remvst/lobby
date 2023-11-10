@@ -8,7 +8,9 @@ export default class ServerSideLobby {
 
     userId: string;
     lobby: Lobby;
-    protected serverSocket: ServerSideSocket;
+    serverSocket: ServerSideSocket;
+
+    onMessageFromService: (message: AnyMessage) => void = () => {};
 
     constructor(
         readonly service: LobbyService,
@@ -45,6 +47,7 @@ export default class ServerSideLobby {
             if (message.type === 'lobby-updated') {
                 this.lobby = message.lobby;
             }
+            this.onMessageFromService(message);
         };
         this.service.onNewConnection(this.serverSocket);
     }

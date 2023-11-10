@@ -23,15 +23,19 @@ async function setupServerSideLobby(service: LobbyService) {
 }
 
 (async () => {
-    const redisServer = new RedisMemoryServer();
+    // Initialize redis
+    const redisClient = await (async () => {
+        const redisServer = new RedisMemoryServer();
 
-    const host = await redisServer.getHost();
-    const port = await redisServer.getPort();
+        const host = await redisServer.getHost();
+        const port = await redisServer.getPort();
 
-    const redisClient = createClient({
-        socket: { host, port },
-    });
-    await redisClient.connect();
+        const redisClient = createClient({
+            socket: { host, port },
+        });
+        await redisClient.connect();
+        return redisClient;
+    })();
 
     const app = express();
     app.use(cors());
@@ -48,6 +52,7 @@ async function setupServerSideLobby(service: LobbyService) {
 
     setupServerSideLobby(service);
 
-    console.log(`Starting lobby-server on port ${port}`);
-    server.listen(9000, () => console.log(`Ready`));  
+    const HTTP_PORT = 9000;
+    console.log(`Starting lobby-server on port ${HTTP_PORT}`);
+    server.listen(HTTP_PORT, () => console.log(`Ready`));  
 })();
