@@ -1,6 +1,6 @@
-import { SocketController } from "@remvst/lobby-server";
+import { SocketController } from "../../shared/socket-controller";
 
-export default class ServerHostSocket implements SocketController {
+export default class ServerSideSocket implements SocketController {
     handshake: {query: {[key:string]: string}} = {
         query: {
             token: this.token,
