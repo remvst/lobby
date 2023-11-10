@@ -244,39 +244,43 @@ export class LobbyService {
         await this.updateLobby(lobby);
 
         socket.onDisconnect(async () => {
-            const controller = this.lobbies.get(lobbyId);
-            controller.sockets.delete(userId);
+            try {
+                const controller = this.lobbies.get(lobbyId);
+                controller.sockets.delete(userId);
 
-            const user = await this.storage.participants(lobbyId).item(userId).get();
-            if (!user) return;
+                const user = await this.storage.participants(lobbyId).item(userId).get();
+                if (!user) return;
 
-            user.connected = false;
-            await this.storage.participants(lobbyId).item(userId).set(user);
+                user.connected = false;
+                await this.storage.participants(lobbyId).item(userId).set(user);
 
-            // If everyone is disconnected, close the lobby entirely
+                // If everyone is disconnected, close the lobby entirely
 
-            const users = await this.storage.participants(lobbyId).entries();
-            const connectedUsers = Array.from(users.values()).filter(p => p.connected);
-            if (connectedUsers.length === 0) {
-                await this.deleteLobby(game, lobbyId);
-                return;
+                const users = await this.storage.participants(lobbyId).entries();
+                const connectedUsers = Array.from(users.values()).filter(p => p.connected);
+                if (connectedUsers.length === 0) {
+                    await this.deleteLobby(game, lobbyId);
+                    return;
+                }
+
+                // Otherwise, update the lobby and schedule an autokick
+                await this.updateLobby(lobby);
+
+                const payload: AutoKickTaskPayload = {
+                    lobbyId: lobby.id,
+                    userId: userId,
+                    lastConnected: user.lastConnected,
+                    game,
+                };
+
+                this.taskQueue.schedule({
+                    scheduledTime: Date.now() + MAX_DISCONNECTION_TIME,
+                    type: 'auto-kick',
+                    payload,
+                });
+            } catch (err) {
+                this.logger.error('onDisconnect', { err });
             }
-
-            // Otherwise, update the lobby and schedule an autokick
-            await this.updateLobby(lobby);
-
-            const payload: AutoKickTaskPayload = {
-                lobbyId: lobby.id,
-                userId: userId,
-                lastConnected: user.lastConnected,
-                game,
-            };
-
-            this.taskQueue.schedule({
-                scheduledTime: Date.now() + MAX_DISCONNECTION_TIME,
-                type: 'auto-kick',
-                payload,
-            });
         });
         socket.onMessage(async (message) => await this.onMessageReceived(game, lobbyId, userId, message))
     }
@@ -331,7 +335,6 @@ export class LobbyService {
 
         const controller = this.lobbies.get(request.lobbyId);
         if (!controller) throw new NotFoundError();
-
 
         const message: StatusMessage = {
             'type': 'status-message',
@@ -394,7 +397,7 @@ export class LobbyService {
         await this.notifyLobbyUpdated(lobby.game, lobby.id);
     }
 
-    private async lobby(game: string, lobbyId: string): Promise<Lobby> {
+    async lobby(game: string, lobbyId: string): Promise<Lobby> {
         const lobby = await this.storage.lobbies(game).item(lobbyId).get();
         if (!lobby) {
             throw new Error('Lobby not found');   

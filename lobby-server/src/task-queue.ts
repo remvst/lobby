@@ -20,7 +20,14 @@ export default class TaskQueue {
         this.logger.info('Executing', { task });
 
         const executor = this.executors.get(task.type);
-        executor(task.payload);
+
+        (async () => {
+            try {
+                await executor(task.payload);
+            } catch (err) {
+                this.logger.info('Failed', { task, err });
+            }
+        })();
     }
 
     defineExecutor<PayloadType>(taskType: string, executor: Executor<PayloadType>) {

@@ -1,3 +1,4 @@
+import { NotFoundError, ForbiddenError, InternalError, BadRequestError } from './http-error';
 import { SocketController } from './../../shared/socket-controller';
 import { LobbyService } from './lobby-service';
 import { LobbyController } from "./lobby-controller";
@@ -14,4 +15,10 @@ export {
     SocketIOWrapper,
     Storage,
     RedisStorage,
+
+    // Errors
+    NotFoundError,
+    ForbiddenError,
+    InternalError,
+    BadRequestError,
 }

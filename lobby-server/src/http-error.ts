@@ -1,13 +1,13 @@
-export default class HttpError {
+export default class HttpError extends Error {
     constructor(
         readonly statusCode: number,
-        readonly message: string,
+        message: string,
     ) {
-        
+        super(message);
     }
 }
 
-export class ServerError extends HttpError {
+export class InternalError extends HttpError {
     constructor(message: string = 'Internal error') {
         super(500, message);
     }
