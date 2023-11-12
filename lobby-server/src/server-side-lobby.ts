@@ -51,7 +51,7 @@ export default class ServerSideLobby {
             }
             this.onMessageFromService(message);
         };
-        this.service.onNewConnection(this.serverSocket);
+        await this.service.onNewConnection(this.serverSocket);
     }
 
     async tearDown() {
