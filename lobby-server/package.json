@@ -1,6 +1,6 @@
 {
   "name": "@remvst/lobby-server",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "",
   "main": "lib/lobby-server/src/index.js",
   "scripts": {
