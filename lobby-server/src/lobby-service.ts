@@ -1,7 +1,7 @@
 import { createLogger } from "bunyan";
 import TaskQueue from "./task-queue";
 import { LobbyController } from "./lobby-controller";
-import { ListLobbiesRequest, ListLobbiesResponse, LeaveLobbyRequest, LeaveLobbyResponse, CreateLobbyRequest, User, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, SendTextMessageRequest, SendTextMessageResponse, SendDataMessageRequest, SendDataMessageResponse, SetMetadataRequest, SetMetadataResponse, SendStatusMessageRequest, SendStatusMessageResponse } from "../../shared/api";
+import { ListLobbiesRequest, ListLobbiesResponse, LeaveLobbyRequest, LeaveLobbyResponse, CreateLobbyRequest, User, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, SendTextMessageRequest, SendTextMessageResponse, SendDataMessageRequest, SendDataMessageResponse, SetMetadataRequest, SetMetadataResponse, SendStatusMessageRequest, SendStatusMessageResponse, DestroyLobbyRequest, DestroyLobbyResponse } from "../../shared/api";
 import { Lobby } from "../../shared/lobby";
 import { AnyMessage, DataMessage, LobbyUpdated, StatusMessage, TextMessage } from "../../shared/message";
 import { LobbyDetails } from "./model/lobby-details";
@@ -26,7 +26,7 @@ export class LobbyService {
     private readonly storage: Storage;
 
     constructor(private readonly options: {
-        readonly secretKey: string,   
+        readonly secretKey: string,
         readonly storage: Storage,
         readonly maxLobbyParticipants: number,
     }) {
@@ -51,7 +51,7 @@ export class LobbyService {
         if (!game) throw new BadRequestError('Missing game parameter');
 
         const lobbyDetails: LobbyDetails[] = Array.from((await this.storage.lobbies(game).entries()).values());
-        
+
         const allLobbies = await Promise.all(lobbyDetails
             .map(async (details) => {
                 const entries = await this.storage.participants(details.id).entries();
@@ -59,7 +59,7 @@ export class LobbyService {
                     ...details,
                     participants: Array.from(entries.values()),
                 };
-                return lobby;  
+                return lobby;
             })
         );
         const lobbies = allLobbies
@@ -86,6 +86,26 @@ export class LobbyService {
         if (!lobby) throw new NotFoundError('Lobby not found');
 
         await this.leaveLobby(lobby, userId);
+        return {};
+    }
+
+    async destroy(request: DestroyLobbyRequest): Promise<DestroyLobbyResponse> {
+        const { token } = request;
+
+        let decoded: TokenFormat;
+        try {
+            decoded = this.verifyToken(token);
+        } catch (err) {
+            throw new BadRequestError('Invalid token');
+        }
+
+        const { lobbyId, userId, game } = decoded;
+        const lobby = await this.storage.lobbies(game).item(lobbyId).get();
+        if (!lobby) throw new NotFoundError('Lobby not found');
+        if (lobby.leader !== userId) throw new ForbiddenError();
+
+        const participantIds = await this.storage.participants(lobbyId).keys();
+        await Promise.all(participantIds.map(id => this.leaveLobby(lobby, id)));
         return {};
     }
 
@@ -133,8 +153,8 @@ export class LobbyService {
             payload,
         });
 
-        return { 
-            token, user, 
+        return {
+            token, user,
             lobby: await this.lobby(game, lobby.id),
         };
     }
@@ -351,7 +371,7 @@ export class LobbyService {
         this.logger.info(`onMessage`, {fromUserId, message});
         try {
             switch (message.type) {
-            case 'text-message': 
+            case 'text-message':
                 await this.sendTextMessage({
                     fromUserId: fromUserId,
                     message: message.message,
@@ -400,7 +420,7 @@ export class LobbyService {
     async lobby(game: string, lobbyId: string): Promise<Lobby> {
         const lobby = await this.storage.lobbies(game).item(lobbyId).get();
         if (!lobby) {
-            throw new Error('Lobby not found');   
+            throw new NotFoundError('Lobby not found');
         }
 
         const participants = await this.storage.participants(lobbyId).entries();

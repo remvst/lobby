@@ -39,6 +39,13 @@ export interface LeaveLobbyRequest {
 export interface LeaveLobbyResponse {
 }
 
+export interface DestroyLobbyRequest {
+    token: string;
+}
+
+export interface DestroyLobbyResponse {
+}
+
 export interface User {
     id: string;
     displayName: string;

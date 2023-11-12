@@ -9,6 +9,7 @@ export default class ServerSideLobby {
     userId: string;
     lobby: Lobby;
     serverSocket: ServerSideSocket;
+    token: string;
 
     onMessageFromService: (message: AnyMessage) => void = () => {};
 
@@ -25,13 +26,14 @@ export default class ServerSideLobby {
     }) {
         // Create the lobby
         const { lobby, token, user } = await this.service.create({
-            game: opts.game, 
-            lobbyDisplayName: opts.lobbyDisplayName, 
+            game: opts.game,
+            lobbyDisplayName: opts.lobbyDisplayName,
             playerDisplayName: opts.playerDisplayName,
         });
 
         this.lobby = lobby;
         this.userId = user.id;
+        this.token = token;
 
         await this.service.setMetadata({
             game: this.lobby.game,
@@ -50,6 +52,16 @@ export default class ServerSideLobby {
             this.onMessageFromService(message);
         };
         this.service.onNewConnection(this.serverSocket);
+    }
+
+    async tearDown() {
+        await this.service.destroy({
+            token: this.token,
+        });
+        this.lobby = null;
+        this.token = null;
+        this.userId = null;
+        this.serverSocket = null;
     }
 
     async broadcastDataMessage(data: any) {

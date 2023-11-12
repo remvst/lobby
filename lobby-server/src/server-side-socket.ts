@@ -9,8 +9,9 @@ export default class ServerSideSocket implements SocketController {
 
     sendFromServiceListener: (message: any) => void = () => {};
     sendToServiceListener: (message: any) => void = () => {};
+    onDisconnectListener: () => void;
 
-    constructor(private readonly token: string) {
+    constructor(readonly token: string) {
 
     }
 
@@ -19,7 +20,7 @@ export default class ServerSideSocket implements SocketController {
     }
 
     disconnect() {
-
+        this.onDisconnectListener();
     }
 
     onMessage(listener: (message: any) => void) {
@@ -27,6 +28,6 @@ export default class ServerSideSocket implements SocketController {
     }
 
     onDisconnect(listener: () => void) {
-        
+        this.onDisconnectListener = listener;
     }
 }
