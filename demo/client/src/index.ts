@@ -25,6 +25,7 @@ window.addEventListener('load', () => {
         increaseScore: document.querySelector('#increase-score') as HTMLButtonElement,
         statusMessage: document.querySelector('#status-message') as HTMLButtonElement,
         sendStatus: document.querySelector('#send-status') as HTMLButtonElement,
+        ping: document.querySelector('#ping') as HTMLButtonElement,
     };
 
     dom.playerDisplayName.value = dom.playerDisplayName.value || `user-${~~(Math.random() * 100)}`;
@@ -74,7 +75,7 @@ window.addEventListener('load', () => {
             dom.sendText.disabled = dom.textMessage.disabled = dom.sendStatus.disabled = false;
             dom.increaseScore.disabled = false;
             break;
-        case ConnectionState.CONNECTING: 
+        case ConnectionState.CONNECTING:
             dom.create.disabled = dom.join.disabled = true;
             dom.disconnect.disabled = false;
             dom.playerDisplayName.disabled = dom.lobbyId.disabled = dom.lobbyDisplayName.disabled = true;
@@ -163,5 +164,15 @@ window.addEventListener('load', () => {
         const newScore = (myUser.metadata.score || 0) + 1;
 
         client.setMetadata(client.userId, 'score', newScore);
+    }, false);
+
+    dom.ping.addEventListener('click', async () => {
+        log(`Sending a ping`);
+
+        const before = performance.now();
+        await client.ping();
+        const after = performance.now();
+
+        log(`Ping time: ${after - before}ms`);
     }, false);
 });

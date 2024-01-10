@@ -3,14 +3,14 @@ import http from 'http';
 import express from 'express';
 import { LobbyService } from "./lobby-service";
 import SocketIOWrapper from "./socket-io-wrapper";
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, ListLobbiesRequest, ListLobbiesResponse } from "../../shared/api";
+import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, ListLobbiesRequest, ListLobbiesResponse, PingRequest, PingResponse } from "../../shared/api";
 import HttpError from "./http-error";
 
 export default class LobbyHttpServer {
 
     constructor(
         protected readonly service: LobbyService,
-        protected readonly server: http.Server, 
+        protected readonly server: http.Server,
         protected readonly app: any
     ) {
         const io = new Server(server, {
@@ -29,6 +29,7 @@ export default class LobbyHttpServer {
         app.post('/leave', this.responder<LeaveLobbyRequest, LeaveLobbyResponse>((request) => this.service.leave(request)));
         app.post('/create', this.responder<CreateLobbyRequest, CreateLobbyResponse>((request) => this.service.create(request)));
         app.post('/join', this.responder<JoinLobbyRequest, JoinLobbyResponse>((request) => this.service.join(request)));
+        app.post('/ping', this.responder<PingRequest, PingResponse>(async () => ({})));
     }
 
     protected responder<RequestType, ResponseType>(

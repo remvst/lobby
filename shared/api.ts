@@ -99,3 +99,11 @@ export interface SendStatusMessageRequest {
 export interface SendStatusMessageResponse {
 
 }
+
+export interface PingRequest {
+
+}
+
+export interface PingResponse {
+
+}

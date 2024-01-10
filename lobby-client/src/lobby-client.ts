@@ -1,7 +1,7 @@
 import { Lobby } from "../../shared/lobby";
 import { Socket, io } from "socket.io-client";
 import { AnyMessage, DataMessage, SetMetadataMessage, StatusMessage, TextMessage } from '../../shared/message';
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, ListLobbiesRequest, ListLobbiesResponse, User } from "../../shared/api";
+import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, ListLobbiesRequest, ListLobbiesResponse, PingResponse, User } from "../../shared/api";
 
 export enum ConnectionState {
     DISCONNECTED = 'disconnected',
@@ -103,6 +103,10 @@ export default class LobbyClient {
         });
         if (!resp.ok) throw new Error(`API ${path} returned error code ${resp.status}`);
         return resp;
+    }
+
+    async ping(): Promise<PingResponse> {
+        return this.callApi('/ping', {method: 'POST'});
     }
 
     async createAndJoin(opts: {
