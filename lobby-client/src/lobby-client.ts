@@ -12,8 +12,8 @@ export enum ConnectionState {
 export default class LobbyClient {
 
     private socket: Socket;
-    private readonly url: string;
-    private readonly game: string;
+    readonly url: string;
+    readonly game: string;
     private readonly users = new Map<string, User>();
 
     userId: string;
@@ -21,7 +21,7 @@ export default class LobbyClient {
     token: string;
 
     connectionState: ConnectionState = ConnectionState.DISCONNECTED;
-    
+
     onLobbyUpdated: (lobby: Lobby) => void = () => {};
     onTextMessage: (userId: string, message: string) => void = () => {};
     onStatusMessage: (message: string) => void = () => {};
@@ -78,7 +78,7 @@ export default class LobbyClient {
             'fromUserId': this.userId,
             'type': 'set-metadata',
             userId,
-            key, 
+            key,
             value,
         };
         this.socket.emit('message', payload);
