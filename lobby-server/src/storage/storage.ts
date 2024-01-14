@@ -1,5 +1,5 @@
-import { User } from '../../../shared/api';
-import { LobbyDetails } from '../model/lobby-details';
+import { User } from "../../../shared/api";
+import { LobbyDetails } from "../model/lobby-details";
 
 export interface MapController<T> {
     keys(): Promise<string[]>;

@@ -1,107 +1,104 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+    <head>
+        <title>Lobby Demo</title>
+    </head>
 
-<head>
-    <title>Lobby Demo</title>
-</head>
+    <body>
+        <h1>Lobby demo</h1>
 
-<body>
+        <fieldset>
+            <legend>Ping</legend>
 
-    <h1>Lobby demo</h1>
+            <div>
+                <button id="ping">Ping</button>
+            </div>
+        </fieldset>
 
-    <fieldset>
-        <legend>Ping</legend>
+        <fieldset>
+            <legend>Player</legend>
 
-        <div>
-            <button id="ping">Ping</button>
-        </div>
-    </fieldset>
+            <div>
+                <label>Player display name</label>
+                <input type="text" id="player-display-name" />
+            </div>
+        </fieldset>
 
-    <fieldset>
-        <legend>Player</legend>
+        <fieldset>
+            <legend>Create</legend>
 
-        <div>
-            <label>Player display name</label>
-            <input type="text" id="player-display-name" />
-        </div>
-    </fieldset>
+            <div>
+                <label>Lobby display name</label>
+                <input type="text" id="lobby-display-name" />
+            </div>
 
-    <fieldset>
-        <legend>Create</legend>
+            <div>
+                <button id="create">Create</button>
+            </div>
+        </fieldset>
 
-        <div>
-            <label>Lobby display name</label>
-            <input type="text" id="lobby-display-name" />
-        </div>
+        <fieldset>
+            <legend>Join</legend>
 
-        <div>
-            <button id="create">Create</button>
-        </div>
-    </fieldset>
+            <div>
+                <label>Lobby</label>
+                <select id="lobby-id"></select>
+                <button id="refresh">Refresh</button>
+            </div>
 
-    <fieldset>
-        <legend>Join</legend>
+            <div>
+                <button id="join">Join</button>
+            </div>
+        </fieldset>
 
-        <div>
-            <label>Lobby</label>
-            <select id="lobby-id"></select>
-            <button id="refresh">Refresh</button>
-        </div>
+        <fieldset>
+            <legend>Disconnect</legend>
 
-        <div>
-            <button id="join">Join</button>
-        </div>
-    </fieldset>
+            <div>
+                <button id="disconnect">Disconnect</button>
+            </div>
+        </fieldset>
 
-    <fieldset>
-        <legend>Disconnect</legend>
+        <fieldset>
+            <legend>Send</legend>
 
-        <div>
-            <button id="disconnect">Disconnect</button>
-        </div>
-    </fieldset>
+            <div>
+                <input type="text" id="text-message" />
+                <button id="send-text">Send text</button>
+            </div>
 
-    <fieldset>
-        <legend>Send</legend>
+            <div>
+                <input type="text" id="data-message" />
+                <select id="data-recipient"></select>
+                <button id="send-data">Data</button>
+            </div>
 
-        <div>
-            <input type="text" id="text-message" />
-            <button id="send-text">Send text</button>
-        </div>
+            <div>
+                <input type="text" id="status-message" />
+                <button id="send-status">Send status</button>
+            </div>
+        </fieldset>
 
-        <div>
-            <input type="text" id="data-message" />
-            <select id="data-recipient"></select>
-            <button id="send-data">Data</button>
-        </div>
+        <fieldset>
+            <legend>Metadata</legend>
 
-        <div>
-            <input type="text" id="status-message" />
-            <button id="send-status">Send status</button>
-        </div>
-    </fieldset>
+            <div>
+                <button id="increase-score">Increase my score</button>
+            </div>
+        </fieldset>
 
-    <fieldset>
-        <legend>Metadata</legend>
+        <fieldset>
+            <legend>Lobby</legend>
 
-        <div>
-            <button id="increase-score">Increase my score</button>
-        </div>
-    </fieldset>
+            <div>
+                <pre id="lobby-state"></pre>
+            </div>
+        </fieldset>
 
-    <fieldset>
-        <legend>Lobby</legend>
+        <fieldset>
+            <legend>Log</legend>
 
-        <div>
-            <pre id="lobby-state"></pre>
-        </div>
-    </fieldset>
-
-    <fieldset>
-        <legend>Log</legend>
-
-        <div id="log"></div>
-    </fieldset>
-</body>
-
+            <div id="log"></div>
+        </fieldset>
+    </body>
 </html>

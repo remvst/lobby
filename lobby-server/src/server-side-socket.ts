@@ -1,7 +1,7 @@
 import { SocketController } from "../../shared/socket-controller";
 
 export class ServerSideSocket implements SocketController {
-    handshake: {query: {[key:string]: string}} = {
+    handshake: { query: { [key: string]: string } } = {
         query: {
             token: this.token,
         },
@@ -11,9 +11,7 @@ export class ServerSideSocket implements SocketController {
     sendToServiceListener: (message: any) => void = () => {};
     onDisconnectListener: () => void;
 
-    constructor(readonly token: string) {
-
-    }
+    constructor(readonly token: string) {}
 
     send(message: any) {
         this.sendFromServiceListener(message);

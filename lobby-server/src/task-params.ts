@@ -9,6 +9,6 @@ export interface AutoKickTaskPayload {
     readonly lobbyId: string;
     readonly userId: string;
     readonly lastConnected: number;
-};
+}
 
 export type AnyTaskPayload = AutoKickTaskPayload;

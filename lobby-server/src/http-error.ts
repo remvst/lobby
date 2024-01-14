@@ -8,25 +8,25 @@ export class HttpError extends Error {
 }
 
 export class InternalError extends HttpError {
-    constructor(message: string = 'Internal error') {
+    constructor(message: string = "Internal error") {
         super(500, message);
     }
 }
 
 export class NotFoundError extends HttpError {
-    constructor(message: string = 'Not found') {
+    constructor(message: string = "Not found") {
         super(404, message);
     }
 }
 
 export class BadRequestError extends HttpError {
-    constructor(message: string = 'Bad request') {
+    constructor(message: string = "Bad request") {
         super(400, message);
     }
 }
 
 export class ForbiddenError extends HttpError {
-    constructor(message: string = 'Forbidden') {
+    constructor(message: string = "Forbidden") {
         super(403, message);
     }
 }

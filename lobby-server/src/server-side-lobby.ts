@@ -5,7 +5,6 @@ import { LobbyService } from "./lobby-service";
 import { ServerSideSocket } from "./server-side-socket";
 
 export class ServerSideLobby {
-
     userId: string;
     lobby: Lobby;
     serverSocket: ServerSideSocket;
@@ -13,16 +12,12 @@ export class ServerSideLobby {
 
     onMessageFromService: (message: AnyMessage) => void = () => {};
 
-    constructor(
-        readonly service: LobbyService,
-    ) {
-
-    }
+    constructor(readonly service: LobbyService) {}
 
     async create(opts: {
-        readonly game: string,
-        readonly lobbyDisplayName: string,
-        readonly playerDisplayName: string,
+        readonly game: string;
+        readonly lobbyDisplayName: string;
+        readonly playerDisplayName: string;
     }) {
         // Create the lobby
         const { lobby, token, user } = await this.service.create({
@@ -39,14 +34,14 @@ export class ServerSideLobby {
             game: this.lobby.game,
             lobbyId: this.lobby.id,
             userId: this.userId,
-            key: '!server',
+            key: "!server",
             value: true,
         });
 
         // Create a fake socket that will always be connected to the service
         this.serverSocket = new ServerSideSocket(token);
         this.serverSocket.sendFromServiceListener = (message: AnyMessage) => {
-            if (message.type === 'lobby-updated') {
+            if (message.type === "lobby-updated") {
                 this.lobby = message.lobby;
             }
             this.onMessageFromService(message);
@@ -76,7 +71,7 @@ export class ServerSideLobby {
                     lobbyId: this.lobby.id,
                     fromUserId: this.userId,
                     toUserId: id,
-                    data: data
+                    data: data,
                 });
             } catch (err) {
                 if (err instanceof NotFoundError) {

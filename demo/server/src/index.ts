@@ -1,23 +1,28 @@
-import { LobbyHttpServer, LobbyService, RedisStorage, ServerSideLobby } from '@remvst/lobby-server';
-import { RedisMemoryServer } from 'redis-memory-server';
-import { createClient } from 'redis';
-import express from 'express';
-import http from 'http';
-import cors from 'cors';
+import {
+    LobbyHttpServer,
+    LobbyService,
+    RedisStorage,
+    ServerSideLobby,
+} from "@remvst/lobby-server";
+import cors from "cors";
+import express from "express";
+import http from "http";
+import { createClient } from "redis";
+import { RedisMemoryServer } from "redis-memory-server";
 
-async function setupServerSideLobby(service: LobbyService) { 
+async function setupServerSideLobby(service: LobbyService) {
     const lobby = new ServerSideLobby(service);
     await lobby.create({
-        game: 'lobby-demo',
-        lobbyDisplayName: 'Server-side lobby',
-        playerDisplayName: '!server',
+        game: "lobby-demo",
+        lobbyDisplayName: "Server-side lobby",
+        playerDisplayName: "!server",
     });
 
     // Game updates
     let updateId = 0;
     setInterval(async () => {
-        await lobby.broadcastDataMessage({ 
-            'updateId': updateId++,
+        await lobby.broadcastDataMessage({
+            updateId: updateId++,
         });
     }, 2000);
 }
@@ -43,9 +48,9 @@ async function setupServerSideLobby(service: LobbyService) {
     const server = http.createServer(app);
 
     const service = new LobbyService({
-        'secretKey': 'zeesecret',
-        'storage': new RedisStorage(redisClient),
-        'maxLobbyParticipants': 6,
+        secretKey: "zeesecret",
+        storage: new RedisStorage(redisClient),
+        maxLobbyParticipants: 6,
     });
 
     new LobbyHttpServer(service, server, app);
@@ -54,5 +59,5 @@ async function setupServerSideLobby(service: LobbyService) {
 
     const HTTP_PORT = 9000;
     console.log(`Starting lobby-server on port ${HTTP_PORT}`);
-    server.listen(HTTP_PORT, () => console.log(`Ready`));  
+    server.listen(HTTP_PORT, () => console.log(`Ready`));
 })();

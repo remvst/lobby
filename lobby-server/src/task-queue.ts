@@ -4,12 +4,11 @@ import { TaskParams } from "./task-params";
 type Executor<PayloadType> = (payload: PayloadType) => Promise<void> | void;
 
 export class TaskQueue {
-
-    private readonly logger = createLogger({name: `lobby-server`});
+    private readonly logger = createLogger({ name: `lobby-server` });
     private readonly executors = new Map<string, Executor<any>>();
 
     schedule(params: TaskParams) {
-        this.logger.info('Scheduling', { params });
+        this.logger.info("Scheduling", { params });
 
         const now = Date.now();
         const delay = params.scheduledTime - now;
@@ -17,7 +16,7 @@ export class TaskQueue {
     }
 
     executeTask(task: TaskParams) {
-        this.logger.info('Executing', { task });
+        this.logger.info("Executing", { task });
 
         const executor = this.executors.get(task.type);
 
@@ -25,12 +24,15 @@ export class TaskQueue {
             try {
                 await executor(task.payload);
             } catch (err) {
-                this.logger.info('Failed', { task, err });
+                this.logger.info("Failed", { task, err });
             }
         })();
     }
 
-    defineExecutor<PayloadType>(taskType: string, executor: Executor<PayloadType>) {
+    defineExecutor<PayloadType>(
+        taskType: string,
+        executor: Executor<PayloadType>,
+    ) {
         this.executors.set(taskType, executor);
     }
 }

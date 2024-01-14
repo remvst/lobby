@@ -1,16 +1,31 @@
+import { io, Socket } from "socket.io-client";
+import {
+    CreateLobbyRequest,
+    CreateLobbyResponse,
+    JoinLobbyRequest,
+    JoinLobbyResponse,
+    LeaveLobbyRequest,
+    ListLobbiesRequest,
+    ListLobbiesResponse,
+    PingResponse,
+    User,
+} from "../../shared/api";
 import { Lobby } from "../../shared/lobby";
-import { Socket, io } from "socket.io-client";
-import { AnyMessage, DataMessage, SetMetadataMessage, StatusMessage, TextMessage } from '../../shared/message';
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, ListLobbiesRequest, ListLobbiesResponse, PingResponse, User } from "../../shared/api";
+import {
+    AnyMessage,
+    DataMessage,
+    SetMetadataMessage,
+    StatusMessage,
+    TextMessage,
+} from "../../shared/message";
 
 export enum ConnectionState {
-    DISCONNECTED = 'disconnected',
-    CONNECTED = 'connected',
-    CONNECTING = 'connecting',
+    DISCONNECTED = "disconnected",
+    CONNECTED = "connected",
+    CONNECTING = "connecting",
 }
 
 export class LobbyClient {
-
     private socket: Socket;
     readonly url: string;
     readonly game: string;
@@ -28,10 +43,7 @@ export class LobbyClient {
     onDataMessage: (userId: string, message: any) => void = () => {};
     onConnectionStateChanged: (state: ConnectionState) => void = () => {};
 
-    constructor(opts: {
-        readonly url: string,
-        readonly game: string,
-    }) {
+    constructor(opts: { readonly url: string; readonly game: string }) {
         this.url = opts.url;
         this.game = opts.game;
     }
@@ -47,71 +59,75 @@ export class LobbyClient {
 
     sendTextMessage(message: string) {
         const payload: TextMessage = {
-            'fromUserId': this.userId,
-            'message': message,
-            'type': 'text-message',
+            fromUserId: this.userId,
+            message: message,
+            type: "text-message",
         };
-        this.socket.emit('message', payload);
+        this.socket.emit("message", payload);
     }
 
     sendDataMessage(toUserId: string, data: any) {
         const payload: DataMessage = {
-            'fromUserId': this.userId,
-            'toUserId': toUserId,
-            'data': data,
-            'type': 'data',
+            fromUserId: this.userId,
+            toUserId: toUserId,
+            data: data,
+            type: "data",
         };
-        this.socket.emit('message', payload);
+        this.socket.emit("message", payload);
     }
 
     sendStatusMessage(message: string) {
         const payload: StatusMessage = {
-            'fromUserId': this.userId,
-            'message': message,
-            'type': 'status-message',
+            fromUserId: this.userId,
+            message: message,
+            type: "status-message",
         };
-        this.socket.emit('message', payload);
+        this.socket.emit("message", payload);
     }
 
     setMetadata(userId: string, key: string, value: any) {
         const payload: SetMetadataMessage = {
-            'fromUserId': this.userId,
-            'type': 'set-metadata',
+            fromUserId: this.userId,
+            type: "set-metadata",
             userId,
             key,
             value,
         };
-        this.socket.emit('message', payload);
+        this.socket.emit("message", payload);
     }
 
     async listLobbies(): Promise<Lobby[]> {
         const request: ListLobbiesRequest = { game: this.game };
-        const resp = await this.callApi(`/lobbies?` + new URLSearchParams(request as any).toString(), {
-            'method': 'GET',
-        });
-        const json = await resp.json() as ListLobbiesResponse;
+        const resp = await this.callApi(
+            `/lobbies?` + new URLSearchParams(request as any).toString(),
+            {
+                method: "GET",
+            },
+        );
+        const json = (await resp.json()) as ListLobbiesResponse;
         return json.lobbies;
     }
 
     async callApi(path: string, extraInit: RequestInit): Promise<Body> {
         const resp = await fetch(this.url + path, {
-            method: 'POST',
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
             ...extraInit,
         });
-        if (!resp.ok) throw new Error(`API ${path} returned error code ${resp.status}`);
+        if (!resp.ok)
+            throw new Error(`API ${path} returned error code ${resp.status}`);
         return resp;
     }
 
     async ping(): Promise<PingResponse> {
-        return this.callApi('/ping', {method: 'POST'});
+        return this.callApi("/ping", { method: "POST" });
     }
 
     async createAndJoin(opts: {
-        readonly playerDisplayName: string,
-        readonly lobbyDisplayName: string,
+        readonly playerDisplayName: string;
+        readonly lobbyDisplayName: string;
     }) {
         const payload: CreateLobbyRequest = {
             game: this.game,
@@ -120,11 +136,11 @@ export class LobbyClient {
         };
 
         const resp = await this.callApi(`/create`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify(payload),
         });
 
-        const json = await resp.json() as CreateLobbyResponse;
+        const json = (await resp.json()) as CreateLobbyResponse;
         const { token, user } = json;
         this.userId = user.id;
         this.token = token;
@@ -132,8 +148,8 @@ export class LobbyClient {
     }
 
     async join(opts: {
-        readonly playerDisplayName: string,
-        readonly lobbyId: string,
+        readonly playerDisplayName: string;
+        readonly lobbyId: string;
     }) {
         const payload: JoinLobbyRequest = {
             game: this.game,
@@ -142,20 +158,18 @@ export class LobbyClient {
         };
 
         const resp = await this.callApi(`/join`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify(payload),
         });
 
-        const json = await resp.json() as JoinLobbyResponse;
+        const json = (await resp.json()) as JoinLobbyResponse;
         const { token, user } = json;
         this.userId = user.id;
         this.token = token;
         return await this.connect({ token });
     }
 
-    private async connect(opts: {
-        readonly token: string,
-    }) {
+    private async connect(opts: { readonly token: string }) {
         return new Promise<void>((resolve, reject) => {
             this.setConnectionState(ConnectionState.CONNECTING);
 
@@ -165,45 +179,45 @@ export class LobbyClient {
                     token: opts.token,
                 },
             });
-            this.socket.on('connect', () => {
+            this.socket.on("connect", () => {
                 this.setConnectionState(ConnectionState.CONNECTED);
                 resolve();
             });
-            this.socket.on('disconnect', () => {
+            this.socket.on("disconnect", () => {
                 this.setConnectionState(ConnectionState.DISCONNECTED);
-                reject(new Error('Disconnected'));
+                reject(new Error("Disconnected"));
             });
-            this.socket.on('connect_error', (err) => reject(err));
-            this.socket.on('connect_timeout', (err) => reject(err));
-            this.socket.on('message', (message) => this.onMessage(message));
+            this.socket.on("connect_error", (err) => reject(err));
+            this.socket.on("connect_timeout", (err) => reject(err));
+            this.socket.on("message", (message) => this.onMessage(message));
             this.socket.connect();
         });
     }
 
     private onMessage(message: AnyMessage) {
         switch (message.type) {
-        case 'data':
-            this.onDataMessage(message.fromUserId, message.data);
-            break;
-        case 'lobby-closed':
-            this.disconnect();
-            break;
-        case 'lobby-updated':
-            this.lobby = message.lobby;
-            for (const user of this.lobby.participants) {
-                this.users.set(user.id, user);
-            }
-            this.onLobbyUpdated(this.lobby);
-            break;
-        case 'text-message':
-            this.onTextMessage(message.fromUserId, message.message);
-            break;
-        case 'data':
-            this.onDataMessage(message.fromUserId, message.data);
-            break;
-        case 'status-message':
-            this.onStatusMessage(message.message);
-            break;
+            case "data":
+                this.onDataMessage(message.fromUserId, message.data);
+                break;
+            case "lobby-closed":
+                this.disconnect();
+                break;
+            case "lobby-updated":
+                this.lobby = message.lobby;
+                for (const user of this.lobby.participants) {
+                    this.users.set(user.id, user);
+                }
+                this.onLobbyUpdated(this.lobby);
+                break;
+            case "text-message":
+                this.onTextMessage(message.fromUserId, message.message);
+                break;
+            case "data":
+                this.onDataMessage(message.fromUserId, message.data);
+                break;
+            case "status-message":
+                this.onStatusMessage(message.message);
+                break;
         }
     }
 
@@ -213,7 +227,7 @@ export class LobbyClient {
         };
 
         await this.callApi(`/leave`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify(request),
         });
 
@@ -221,5 +235,4 @@ export class LobbyClient {
         this.socket = null;
         this.token = null;
     }
-
 }
