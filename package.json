@@ -4,7 +4,7 @@
     "description": "",
     "private": true,
     "scripts": {
-        "prettier:fix": "supkg run prettier:fix",
+        "prettier:fix": "subpkg run prettier:fix",
         "test": "subpkg test",
         "postinstall": "subpkg install"
     },
