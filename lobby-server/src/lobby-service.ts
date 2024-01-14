@@ -31,7 +31,7 @@ export class LobbyService {
         readonly secretKey: string,
         readonly storage: Storage,
         readonly maxLobbyParticipants: number,
-        readonly moderator: Moderator,
+        readonly moderator?: Moderator,
     }) {
         this.storage = options.storage;
         this.moderator = options.moderator || new DefaultModerator();

@@ -23,6 +23,9 @@ module.exports = {
     },
     resolve: {
         extensions: ['*', '.js', '.ts', '.tsx'],
+        alias: {
+            '@remvst/lobby-client': path.resolve('./node_modules/@remvst/lobby-client'),
+        },
     },
     module: {
         rules: [{

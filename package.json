@@ -1,0 +1,23 @@
+{
+    "name": "lobby",
+    "version": "0.0.0",
+    "description": "",
+    "private": true,
+    "scripts": {
+        "test": "subpkg run build",
+        "postinstall": "subpkg install"
+    },
+    "keywords": [],
+    "author": "Rémi Vansteelandt",
+    "license": "",
+    "dependencies": {},
+    "devDependencies": {
+        "subpackage": "^1.1.0"
+    },
+    "subPackages": [
+        "lobby-server",
+        "lobby-client",
+        "demo/server",
+        "demo/client"
+    ]
+}
