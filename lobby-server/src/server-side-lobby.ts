@@ -2,7 +2,7 @@ import { Lobby } from "../../shared/lobby";
 import { AnyMessage } from "../../shared/message";
 import { NotFoundError } from "./http-error";
 import { LobbyService } from "./lobby-service";
-import ServerSideSocket from "./server-side-socket";
+import { ServerSideSocket } from "./server-side-socket";
 
 export class ServerSideLobby {
 

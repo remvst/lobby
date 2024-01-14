@@ -1,3 +1,8 @@
+export * from "../../shared/api";
+export * from "../../shared/lobby";
+export * from "../../shared/message";
+export * from "../../shared/socket-controller";
+
 export * from './model/lobby-details';
 export * from './model/token';
 

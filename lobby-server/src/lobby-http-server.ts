@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import http from 'http';
 import express from 'express';
 import { LobbyService } from "./lobby-service";
-import SocketIOWrapper from "./socket-io-wrapper";
+import { SocketIOWrapper } from "./socket-io-wrapper";
 import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, ListLobbiesRequest, ListLobbiesResponse, PingRequest, PingResponse } from "../../shared/api";
 import { HttpError } from "./http-error";
 

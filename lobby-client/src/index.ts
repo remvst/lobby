@@ -1,10 +1,4 @@
-import { Lobby } from "../../shared/lobby";
-import { AnyMessage } from "../../shared/message";
-import LobbyClient, { ConnectionState } from "./lobby-client";
+export * from "../../shared/lobby";
+export * from "../../shared/message";
 
-export { 
-    LobbyClient,
-    AnyMessage,
-    ConnectionState,
-    Lobby,
-};
+export * from './lobby-client';

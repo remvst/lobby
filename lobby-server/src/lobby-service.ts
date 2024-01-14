@@ -1,5 +1,5 @@
 import { createLogger } from "bunyan";
-import TaskQueue from "./task-queue";
+import { TaskQueue } from "./task-queue";
 import { LobbyController } from "./lobby-controller";
 import { ListLobbiesRequest, ListLobbiesResponse, LeaveLobbyRequest, LeaveLobbyResponse, CreateLobbyRequest, User, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, SendTextMessageRequest, SendTextMessageResponse, SendDataMessageRequest, SendDataMessageResponse, SetMetadataRequest, SetMetadataResponse, SendStatusMessageRequest, SendStatusMessageResponse, DestroyLobbyRequest, DestroyLobbyResponse } from "../../shared/api";
 import { Lobby } from "../../shared/lobby";

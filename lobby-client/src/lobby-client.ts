@@ -9,7 +9,7 @@ export enum ConnectionState {
     CONNECTING = 'connecting',
 }
 
-export default class LobbyClient {
+export class LobbyClient {
 
     private socket: Socket;
     readonly url: string;
