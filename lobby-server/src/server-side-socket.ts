@@ -1,6 +1,6 @@
 import { SocketController } from "../../shared/socket-controller";
 
-export default class ServerSideSocket implements SocketController {
+export class ServerSideSocket implements SocketController {
     handshake: {query: {[key:string]: string}} = {
         query: {
             token: this.token,

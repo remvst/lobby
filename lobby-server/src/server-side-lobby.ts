@@ -4,7 +4,7 @@ import { NotFoundError } from "./http-error";
 import { LobbyService } from "./lobby-service";
 import ServerSideSocket from "./server-side-socket";
 
-export default class ServerSideLobby {
+export class ServerSideLobby {
 
     userId: string;
     lobby: Lobby;

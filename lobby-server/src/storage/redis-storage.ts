@@ -16,7 +16,7 @@ class RedisMapController<T> implements MapController<T> {
     async keys(): Promise<string[]> {
         return await this.client.hKeys(this.hashKey);
     }
-    
+
     async entries(): Promise<Map<string, T>> {
         const results = await this.client.hGetAll(this.hashKey);
         return new Map(Object.entries(results).map(([key, value]) => [key, JSON.parse(value)]));
@@ -56,7 +56,7 @@ class RedisMapItemController<T> implements MapItemController<T> {
     }
 }
 
-export default class RedisStorage implements Storage {
+export class RedisStorage implements Storage {
     constructor(readonly client: RedisClientType) {
 
     }

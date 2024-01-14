@@ -3,7 +3,7 @@ import { TaskParams } from "./task-params";
 
 type Executor<PayloadType> = (payload: PayloadType) => Promise<void> | void;
 
-export default class TaskQueue {
+export class TaskQueue {
 
     private readonly logger = createLogger({name: `lobby-server`});
     private readonly executors = new Map<string, Executor<any>>();

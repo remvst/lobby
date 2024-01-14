@@ -1,9 +1,9 @@
 import { Socket } from "socket.io";
 import { SocketController } from "../../shared/socket-controller";
 
-export default class SocketIOWrapper implements SocketController {
+export class SocketIOWrapper implements SocketController {
     handshake = this.io.handshake as {query: {[key:string]: string}};
-    
+
     constructor(private readonly io: Socket) {
 
     }
