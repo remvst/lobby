@@ -4,12 +4,17 @@
     "description": "Lobby client",
     "main": "lib/lobby-client/src/index.js",
     "scripts": {
+        "prettier:fix": "prettier . --write",
+        "prettier:check": "prettier . --check",
         "build": "rm -rf lib && tsc",
-        "prepublishOnly": "npm i && npm run build"
+        "prepublishOnly": "npm i && npm run build",
+        "test": "npm run prettier:check && npm run build"
     },
     "author": "Rémi Vansteelandt",
     "license": "UNLICENSED",
     "dependencies": {
+        "prettier": "3.1.1",
+        "prettier-plugin-organize-imports": "^3.2.4",
         "socket.io-client": "^4.6.1"
     },
     "devDependencies": {
