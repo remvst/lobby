@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import { SocketController } from "../../shared/socket-controller";
 import { Storage } from './storage/storage';
+import { DefaultModerator, Moderator } from "./moderator";
 
 const MAX_DISCONNECTION_TIME = 15000;
 const ONE_SECOND = 1000;
@@ -24,13 +25,16 @@ export class LobbyService {
     private readonly lobbies = new Map<string, LobbyController>();
     private readonly taskQueue = new TaskQueue();
     private readonly storage: Storage;
+    private readonly moderator: Moderator;
 
     constructor(private readonly options: {
         readonly secretKey: string,
         readonly storage: Storage,
         readonly maxLobbyParticipants: number,
+        readonly moderator: Moderator,
     }) {
         this.storage = options.storage;
+        this.moderator = options.moderator || new DefaultModerator();
 
         this.taskQueue.defineExecutor<AutoKickTaskPayload>('auto-kick', async payload => {
             const { lobbyId, userId, game } = payload;
@@ -110,11 +114,14 @@ export class LobbyService {
     }
 
     async create(request: CreateLobbyRequest): Promise<CreateLobbyResponse> {
-        const { lobbyDisplayName, playerDisplayName, game } = request;
+        let { lobbyDisplayName, playerDisplayName, game } = request;
 
         if (!lobbyDisplayName || !playerDisplayName || !game) {
             throw new BadRequestError('Missing parameter');
         }
+
+        lobbyDisplayName = this.moderator.moderateLobbyDisplayName(lobbyDisplayName);
+        playerDisplayName = this.moderator.moderatePlayerDisplayName(playerDisplayName);
 
         const user: User = {
             id: uuidv4(),
@@ -160,11 +167,13 @@ export class LobbyService {
     }
 
     async join(request: JoinLobbyRequest): Promise<JoinLobbyResponse> {
-        const { playerDisplayName, lobbyId, game } = request;
+        let { playerDisplayName, lobbyId, game } = request;
 
         if (!playerDisplayName || !lobbyId || !game) {
             throw new BadRequestError('Missing parameter');
         }
+
+        playerDisplayName = this.moderator.moderatePlayerDisplayName(playerDisplayName);
 
         const lobby = await this.storage.lobbies(game).item(lobbyId).get();
         if (!lobby) {

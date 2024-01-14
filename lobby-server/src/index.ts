@@ -32,3 +32,5 @@ export {
     InternalError,
     BadRequestError,
 }
+
+export * from './moderator';
