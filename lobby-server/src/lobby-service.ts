@@ -480,7 +480,9 @@ export class LobbyService {
         fromUserId: string,
         message: AnyMessage,
     ) {
-        this.logger.info(`onMessage`, { fromUserId, message });
+        if (message.type !== "data") {
+            this.logger.info(`onMessage`, { fromUserId, message });
+        }
         try {
             switch (message.type) {
                 case "text-message":
