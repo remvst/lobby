@@ -395,10 +395,14 @@ export class LobbyService {
     async sendTextMessage(
         request: SendTextMessageRequest,
     ): Promise<SendTextMessageResponse> {
+        const message = this.moderator.moderateLobbyDisplayName(
+            request.message,
+        );
+
         const forwarded: TextMessage = {
             type: "text-message",
             fromUserId: request.fromUserId,
-            message: request.message,
+            message: message,
         };
 
         const controller = this.lobbies.get(request.lobbyId);
