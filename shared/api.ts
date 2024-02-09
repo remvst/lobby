@@ -1,5 +1,8 @@
 import { Lobby } from './lobby';
 
+export const METADATA_DISPLAY_NAME_KEY = 'displayName';
+export type METADATA_DISPLAY_NAME_KEY_TYPE = 'displayName';
+
 export interface ListLobbiesRequest {
     game: string;
 }
@@ -48,10 +51,9 @@ export interface DestroyLobbyResponse {
 
 export interface User {
     id: string;
-    displayName: string;
     connected: boolean;
     lastConnected: number;
-    metadata: {[key: string]: any};
+    metadata: {[key: string]: any} & { [key in METADATA_DISPLAY_NAME_KEY_TYPE]: string; };
 }
 
 export interface SendTextMessageRequest {

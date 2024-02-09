@@ -12,6 +12,7 @@ import {
     LeaveLobbyResponse,
     ListLobbiesRequest,
     ListLobbiesResponse,
+    METADATA_DISPLAY_NAME_KEY,
     SendDataMessageRequest,
     SendDataMessageResponse,
     SendStatusMessageRequest,
@@ -178,10 +179,11 @@ export class LobbyService {
 
         const user: User = {
             id: uuidv4(),
-            displayName: playerDisplayName,
             lastConnected: 0,
             connected: false,
-            metadata: {},
+            metadata: {
+                displayName: playerDisplayName,
+            },
         };
 
         const lobby: LobbyDetails = {
@@ -244,10 +246,11 @@ export class LobbyService {
 
         const user: User = {
             id: uuidv4(),
-            displayName: playerDisplayName,
             connected: false,
             lastConnected: 0,
-            metadata: {},
+            metadata: {
+                displayName: playerDisplayName,
+            },
         };
         await this.storage.participants(lobbyId).item(user.id).set(user);
         await this.updateLobby(lobby);
@@ -445,7 +448,18 @@ export class LobbyService {
             .item(request.userId)
             .get();
         if (!participant) throw new NotFoundError();
+
+        if (request.key === METADATA_DISPLAY_NAME_KEY) {
+            if (typeof request.value !== "string") {
+                throw new BadRequestError();
+            }
+            request.value = this.moderator.moderatePlayerDisplayName(
+                request.value as string,
+            );
+        }
+
         participant.metadata[request.key] = request.value;
+
         await this.storage
             .participants(lobby.id)
             .item(participant.id)
