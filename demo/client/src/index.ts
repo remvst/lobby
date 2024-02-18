@@ -59,7 +59,7 @@ window.addEventListener("load", () => {
         for (const participant of lobby.participants) {
             const element = document.createElement("option");
             element.value = participant.id;
-            element.innerText = `${participant.displayName} (${participant.id})`;
+            element.innerText = `${participant.metadata.displayName} (${participant.id})`;
             dom.dataRecipient.appendChild(element);
         }
     };
