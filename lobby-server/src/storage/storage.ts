@@ -23,5 +23,8 @@ export interface ListController<T> {
 export interface Storage {
     lobbies(gameId: string): MapController<LobbyDetails>;
     participants(lobbyId: string): MapController<UserShort>;
-    participantMeta(lobbyId: string, participantId: string): MapController<number | boolean | string>;
+    participantMeta(
+        lobbyId: string,
+        participantId: string,
+    ): MapController<number | boolean | string>;
 }

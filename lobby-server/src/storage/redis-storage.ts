@@ -68,7 +68,13 @@ export class RedisStorage implements Storage {
         return new RedisMapController(this.client, `participants-${lobbyId}`);
     }
 
-    participantMeta(lobbyId: string, participantId: string): MapController<string | number | boolean> {
-        return new RedisMapController(this.client, `participant-meta-${lobbyId}-${participantId}`);
+    participantMeta(
+        lobbyId: string,
+        participantId: string,
+    ): MapController<string | number | boolean> {
+        return new RedisMapController(
+            this.client,
+            `participant-meta-${lobbyId}-${participantId}`,
+        );
     }
 }

@@ -112,8 +112,13 @@ export class LobbyService {
                     .entries();
 
                 const participants: User[] = [];
-                for (const [participantId, participantShort] of participantShorts.entries()) {
-                    const metadata = await this.storage.participantMeta(details.id, participantId).entries();
+                for (const [
+                    participantId,
+                    participantShort,
+                ] of participantShorts.entries()) {
+                    const metadata = await this.storage
+                        .participantMeta(details.id, participantId)
+                        .entries();
                     participants.push({
                         ...participantShort,
                         metadata: Object.fromEntries(metadata) as UserMetadata,
@@ -453,7 +458,7 @@ export class LobbyService {
     async setMetadata(
         request: SetMetadataRequest,
     ): Promise<SetMetadataResponse> {
-        console.log('setting zee meta', request);
+        console.log("setting zee meta", request);
 
         const lobby = await this.storage
             .lobbies(request.game)
@@ -474,7 +479,10 @@ export class LobbyService {
             );
         }
 
-        await this.storage.participantMeta(lobby.id, participant.id).item(request.key).set(request.value);
+        await this.storage
+            .participantMeta(lobby.id, participant.id)
+            .item(request.key)
+            .set(request.value);
 
         await this.updateLobby(lobby);
 
@@ -567,11 +575,18 @@ export class LobbyService {
             throw new NotFoundError("Lobby not found");
         }
 
-        const participantShorts = await this.storage.participants(lobby.id).entries();
+        const participantShorts = await this.storage
+            .participants(lobby.id)
+            .entries();
 
         const participants: User[] = [];
-        for (const [participantId, participantShort] of participantShorts.entries()) {
-            const metadata = await this.storage.participantMeta(lobby.id, participantId).entries();
+        for (const [
+            participantId,
+            participantShort,
+        ] of participantShorts.entries()) {
+            const metadata = await this.storage
+                .participantMeta(lobby.id, participantId)
+                .entries();
             participants.push({
                 ...participantShort,
                 metadata: Object.fromEntries(metadata) as UserMetadata,
