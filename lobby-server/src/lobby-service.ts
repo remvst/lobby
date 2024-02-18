@@ -23,6 +23,7 @@ import {
     SetMetadataResponse,
     User,
     UserMetadata,
+    UserShort,
 } from "../../shared/api";
 import { Lobby } from "../../shared/lobby";
 import {
@@ -196,13 +197,10 @@ export class LobbyService {
         playerDisplayName =
             this.moderator.moderatePlayerDisplayName(playerDisplayName);
 
-        const user: User = {
+        const user: UserShort = {
             id: this.playerIdGenerator(),
             lastConnected: 0,
             connected: false,
-            metadata: {
-                displayName: playerDisplayName,
-            },
         };
 
         const lobby: LobbyDetails = {
@@ -216,6 +214,10 @@ export class LobbyService {
         };
 
         await this.storage.participants(lobby.id).item(user.id).set(user);
+        await this.storage
+            .participantMeta(lobby.id, user.id)
+            .item(METADATA_DISPLAY_NAME_KEY)
+            .set(playerDisplayName);
         await this.updateLobby(lobby);
 
         const data: TokenFormat = { userId: user.id, lobbyId: lobby.id, game };
@@ -236,7 +238,10 @@ export class LobbyService {
 
         return {
             token,
-            user,
+            user: {
+                ...user,
+                metadata: { displayName: playerDisplayName },
+            },
             lobby: await this.lobby(game, lobby.id),
         };
     }
@@ -263,15 +268,16 @@ export class LobbyService {
             throw new ForbiddenError("Lobby is full");
         }
 
-        const user: User = {
+        const user: UserShort = {
             id: this.playerIdGenerator(),
             connected: false,
             lastConnected: 0,
-            metadata: {
-                displayName: playerDisplayName,
-            },
         };
         await this.storage.participants(lobbyId).item(user.id).set(user);
+        await this.storage
+            .participantMeta(lobbyId, user.id)
+            .item(METADATA_DISPLAY_NAME_KEY)
+            .set(playerDisplayName);
         await this.updateLobby(lobby);
 
         const payload: AutoKickTaskPayload = {
@@ -292,7 +298,10 @@ export class LobbyService {
 
         return {
             token,
-            user,
+            user: {
+                ...user,
+                metadata: { displayName: playerDisplayName },
+            },
             lobby: await this.lobby(game, lobby.id),
         };
     }
