@@ -458,8 +458,6 @@ export class LobbyService {
     async setMetadata(
         request: SetMetadataRequest,
     ): Promise<SetMetadataResponse> {
-        console.log("setting zee meta", request);
-
         const lobby = await this.storage
             .lobbies(request.game)
             .item(request.lobbyId)
