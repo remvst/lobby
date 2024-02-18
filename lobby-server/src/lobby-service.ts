@@ -22,6 +22,7 @@ import {
     SetMetadataRequest,
     SetMetadataResponse,
     User,
+    UserMetadata,
 } from "../../shared/api";
 import { Lobby } from "../../shared/lobby";
 import {
@@ -106,12 +107,22 @@ export class LobbyService {
 
         const allLobbies = await Promise.all(
             lobbyDetails.map(async (details) => {
-                const entries = await this.storage
+                const participantShorts = await this.storage
                     .participants(details.id)
                     .entries();
+
+                const participants: User[] = [];
+                for (const [participantId, participantShort] of participantShorts.entries()) {
+                    const metadata = await this.storage.participantMeta(details.id, participantId).entries();
+                    participants.push({
+                        ...participantShort,
+                        metadata: Object.fromEntries(metadata) as UserMetadata,
+                    });
+                }
+
                 const lobby: Lobby = {
                     ...details,
-                    participants: Array.from(entries.values()),
+                    participants,
                 };
                 return lobby;
             }),
@@ -442,6 +453,8 @@ export class LobbyService {
     async setMetadata(
         request: SetMetadataRequest,
     ): Promise<SetMetadataResponse> {
+        console.log('setting zee meta', request);
+
         const lobby = await this.storage
             .lobbies(request.game)
             .item(request.lobbyId)
@@ -461,12 +474,8 @@ export class LobbyService {
             );
         }
 
-        participant.metadata[request.key] = request.value;
+        await this.storage.participantMeta(lobby.id, participant.id).item(request.key).set(request.value);
 
-        await this.storage
-            .participants(lobby.id)
-            .item(participant.id)
-            .set(participant);
         await this.updateLobby(lobby);
 
         return {};
@@ -558,7 +567,17 @@ export class LobbyService {
             throw new NotFoundError("Lobby not found");
         }
 
-        const participants = await this.storage.participants(lobbyId).entries();
+        const participantShorts = await this.storage.participants(lobby.id).entries();
+
+        const participants: User[] = [];
+        for (const [participantId, participantShort] of participantShorts.entries()) {
+            const metadata = await this.storage.participantMeta(lobby.id, participantId).entries();
+            participants.push({
+                ...participantShort,
+                metadata: Object.fromEntries(metadata) as UserMetadata,
+            });
+        }
+
         return {
             id: lobby.id,
             game: game,

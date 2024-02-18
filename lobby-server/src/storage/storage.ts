@@ -1,4 +1,4 @@
-import { User } from "../../../shared/api";
+import { UserShort } from "../../../shared/api";
 import { LobbyDetails } from "../model/lobby-details";
 
 export interface MapController<T> {
@@ -22,5 +22,6 @@ export interface ListController<T> {
 
 export interface Storage {
     lobbies(gameId: string): MapController<LobbyDetails>;
-    participants(lobbyId: string): MapController<User>;
+    participants(lobbyId: string): MapController<UserShort>;
+    participantMeta(lobbyId: string, participantId: string): MapController<number | boolean | string>;
 }

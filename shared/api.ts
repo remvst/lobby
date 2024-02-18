@@ -49,11 +49,16 @@ export interface DestroyLobbyRequest {
 export interface DestroyLobbyResponse {
 }
 
-export interface User {
+export interface UserShort {
     id: string;
     connected: boolean;
     lastConnected: number;
-    metadata: {[key: string]: any} & { [key in METADATA_DISPLAY_NAME_KEY_TYPE]: string; };
+}
+
+export type UserMetadata = {[key: string]: any} & { [key in METADATA_DISPLAY_NAME_KEY_TYPE]: string; };
+
+export interface User extends UserShort {
+    metadata: UserMetadata;
 }
 
 export interface SendTextMessageRequest {
