@@ -47,6 +47,9 @@ const ONE_MINUTE = ONE_SECOND * 60;
 const ONE_HOUR = ONE_MINUTE * 60;
 
 export class LobbyService {
+    lobbyIdGenerator: () => string = () => uuidv4();
+    playerIdGenerator: () => string = () => uuidv4();
+
     private readonly logger = createLogger({ name: `lobby-service` });
     private readonly lobbies = new Map<string, LobbyController>();
     private readonly taskQueue = new TaskQueue();
@@ -178,7 +181,7 @@ export class LobbyService {
             this.moderator.moderatePlayerDisplayName(playerDisplayName);
 
         const user: User = {
-            id: uuidv4(),
+            id: this.playerIdGenerator(),
             lastConnected: 0,
             connected: false,
             metadata: {
@@ -187,7 +190,7 @@ export class LobbyService {
         };
 
         const lobby: LobbyDetails = {
-            id: uuidv4(),
+            id: this.lobbyIdGenerator(),
             displayName: lobbyDisplayName,
             leader: user.id,
             game: game,
@@ -245,7 +248,7 @@ export class LobbyService {
         }
 
         const user: User = {
-            id: uuidv4(),
+            id: this.playerIdGenerator(),
             connected: false,
             lastConnected: 0,
             metadata: {
