@@ -1,9 +1,12 @@
-import { ConnectionState, LobbyClient } from "@remvst/lobby-client";
+import { ConnectionState, HttpServerApi, LobbyClient, InMemoryApi } from "@remvst/lobby-client";
 
 window.addEventListener("load", () => {
+    // const api = new InMemoryApi();
+    const api = new HttpServerApi("http://localhost:9000");
+
     const client: LobbyClient = new LobbyClient({
-        url: "http://localhost:9000",
         game: "lobby-demo",
+        api,
     });
 
     const dom = {
