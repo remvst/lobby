@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { SocketController } from "../../shared/socket-controller";
+import { SocketController } from "./socket-controller";
 
 export class SocketIOWrapper implements SocketController {
     handshake = this.io.handshake as { query: { [key: string]: string } };

@@ -1,4 +1,4 @@
-import { SocketController } from "../../shared/socket-controller";
+import { SocketController } from "./socket-controller";
 
 export class ServerSideSocket implements SocketController {
     handshake: { query: { [key: string]: string } } = {

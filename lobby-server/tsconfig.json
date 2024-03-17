@@ -7,6 +7,6 @@
         "allowJs": false,
         "esModuleInterop": true
     },
-    "include": ["src/**/*", "../shared/socket-controller.ts"],
+    "include": ["src/**/*"],
     "exclude": ["node_modules"]
 }

@@ -33,7 +33,7 @@ import {
     StatusMessage,
     TextMessage,
 } from "../../shared/message";
-import { SocketController } from "../../shared/socket-controller";
+import { SocketController } from "./socket-controller";
 import { BadRequestError, ForbiddenError, NotFoundError } from "./http-error";
 import { LobbyController } from "./lobby-controller";
 import { LobbyDetails } from "./model/lobby-details";
