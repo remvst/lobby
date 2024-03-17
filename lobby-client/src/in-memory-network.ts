@@ -13,11 +13,13 @@ function copy(obj: any) {
 
 type Token = {userId: string, lobbyId: string};
 
-export class LocalApi implements IServerApi {
+export class InMemoryApi implements IServerApi {
     private readonly lobbies = new Map<string, Lobby>();
-    private readonly sockets = new Map<string, LocalSocket[]>();
+    private readonly sockets = new Map<string, InMemorySocket[]>();
 
     private notifyLobbyUpdate(lobby: Lobby) {
+        lobby.lastUpdate = Date.now();
+
         const sockets = this.sockets.get(lobby.id) || [];
         const update: LobbyUpdated = {
             type: "lobby-updated",
@@ -76,7 +78,7 @@ export class LocalApi implements IServerApi {
         const lobby = this.lobbies.get(lobbyId);
         if (!lobby) throw new Error('Lobby not found');
 
-        const socket = new LocalSocket(
+        const socket = new InMemorySocket(
             userId,
             () => {
                 options.onDisconnect();
@@ -221,7 +223,7 @@ export class LocalApi implements IServerApi {
     }
 }
 
-export class LocalSocket implements ISocket {
+export class InMemorySocket implements ISocket {
 
     constructor(
         readonly userId: string,

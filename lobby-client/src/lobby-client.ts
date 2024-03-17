@@ -114,9 +114,9 @@ export class LobbyClient {
         this.token = token;
         this.lobby = lobby;
 
-        await this.connect();
-
         this.onLobbyUpdated(lobby);
+
+        await this.connect();
     }
 
     async join(opts: {
@@ -134,9 +134,9 @@ export class LobbyClient {
         this.token = token;
         this.lobby = lobby;
 
-        await this.connect();
-
         this.onLobbyUpdated(lobby);
+
+        await this.connect();
     }
 
     private async connect() {
