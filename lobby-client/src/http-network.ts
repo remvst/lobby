@@ -1,6 +1,7 @@
 import { io, Socket } from "socket.io-client";
 import { ListLobbiesRequest, ListLobbiesResponse, JoinLobbyRequest, JoinLobbyResponse, CreateLobbyRequest, CreateLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, PingRequest, PingResponse } from "../../shared/api";
 import { IServerApi, ISocket } from "./network";
+import { AnyMessage } from "../../shared/message";
 
 export class HttpServerApi implements IServerApi {
 
@@ -95,8 +96,8 @@ export class HttpSocket implements ISocket {
         this.onDisconnected = onDisconnected;
     }
 
-    send(payload: any): void {
-        this.socket.send("message", payload);
+    send(payload: AnyMessage): void {
+        this.socket.emit("message", payload);
     }
 
     connect(): Promise<void> {
