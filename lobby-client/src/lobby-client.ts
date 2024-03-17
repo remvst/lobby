@@ -1,12 +1,4 @@
-import { io, Socket } from "socket.io-client";
 import {
-    CreateLobbyRequest,
-    CreateLobbyResponse,
-    JoinLobbyRequest,
-    JoinLobbyResponse,
-    LeaveLobbyRequest,
-    ListLobbiesRequest,
-    ListLobbiesResponse,
     PingResponse,
     User,
 } from "../../shared/api";
@@ -18,17 +10,14 @@ import {
     StatusMessage,
     TextMessage,
 } from "../../shared/message";
-
-export enum ConnectionState {
-    DISCONNECTED = "disconnected",
-    CONNECTED = "connected",
-    CONNECTING = "connecting",
-}
+import { ConnectionState } from "./connection-state";
+import { IServerApi, ISocket } from "./network";
 
 export class LobbyClient {
-    private socket: Socket;
-    readonly url: string;
+
+    private socket: ISocket;
     readonly game: string;
+    readonly api: IServerApi;
     private readonly users = new Map<string, User>();
 
     userId: string;
@@ -43,9 +32,12 @@ export class LobbyClient {
     onDataMessage: (userId: string, message: any) => void = () => {};
     onConnectionStateChanged: (state: ConnectionState) => void = () => {};
 
-    constructor(opts: { readonly url: string; readonly game: string }) {
-        this.url = opts.url;
+    constructor(opts: {
+        readonly game: string;
+        readonly api: IServerApi;
+    }) {
         this.game = opts.game;
+        this.api = opts.api;
     }
 
     user(id: string): User {
@@ -63,7 +55,7 @@ export class LobbyClient {
             message: message,
             type: "text-message",
         };
-        this.socket.emit("message", payload);
+        this.socket.send(payload);
     }
 
     sendDataMessage(toUserId: string, data: any) {
@@ -73,7 +65,7 @@ export class LobbyClient {
             data: data,
             type: "data",
         };
-        this.socket.emit("message", payload);
+        this.socket.send(payload);
     }
 
     sendStatusMessage(message: string) {
@@ -82,7 +74,7 @@ export class LobbyClient {
             message: message,
             type: "status-message",
         };
-        this.socket.emit("message", payload);
+        this.socket.send(payload);
     }
 
     setMetadata(userId: string, key: string, value: any) {
@@ -93,105 +85,74 @@ export class LobbyClient {
             key,
             value,
         };
-        this.socket.emit("message", payload);
+        this.socket.send(payload);
     }
 
     async listLobbies(): Promise<Lobby[]> {
-        const request: ListLobbiesRequest = { game: this.game };
-        const resp = await this.callApi(
-            `/lobbies?` + new URLSearchParams(request as any).toString(),
-            {
-                method: "GET",
-            },
-        );
-        const json = (await resp.json()) as ListLobbiesResponse;
-        return json.lobbies;
-    }
-
-    async callApi(path: string, extraInit: RequestInit): Promise<Body> {
-        const resp = await fetch(this.url + path, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            ...extraInit,
+        const resp = await this.api.listLobbies({
+            game: this.game,
         });
-        if (!resp.ok)
-            throw new Error(`API ${path} returned error code ${resp.status}`);
-        return resp;
+        return resp.lobbies;
     }
 
     async ping(): Promise<PingResponse> {
-        return this.callApi("/ping", { method: "POST" });
+        return this.api.ping({});
     }
 
     async createAndJoin(opts: {
         readonly playerDisplayName: string;
         readonly lobbyDisplayName: string;
     }) {
-        const payload: CreateLobbyRequest = {
+        const resp = await this.api.create({
             game: this.game,
             lobbyDisplayName: opts.lobbyDisplayName,
             playerDisplayName: opts.playerDisplayName,
-        };
-
-        const resp = await this.callApi(`/create`, {
-            method: "POST",
-            body: JSON.stringify(payload),
         });
 
-        const json = (await resp.json()) as CreateLobbyResponse;
-        const { token, user } = json;
+        const { token, user, lobby } = resp;
         this.userId = user.id;
         this.token = token;
-        return await this.connect({ token });
+        this.lobby = lobby;
+
+        await this.connect();
+
+        this.onLobbyUpdated(lobby);
     }
 
     async join(opts: {
         readonly playerDisplayName: string;
         readonly lobbyId: string;
     }) {
-        const payload: JoinLobbyRequest = {
+        const resp = await this.api.join({
             game: this.game,
             lobbyId: opts.lobbyId,
             playerDisplayName: opts.playerDisplayName,
-        };
-
-        const resp = await this.callApi(`/join`, {
-            method: "POST",
-            body: JSON.stringify(payload),
         });
 
-        const json = (await resp.json()) as JoinLobbyResponse;
-        const { token, user } = json;
+        const { token, user, lobby } = resp;
         this.userId = user.id;
         this.token = token;
-        return await this.connect({ token });
+        this.lobby = lobby;
+
+        await this.connect();
+
+        this.onLobbyUpdated(lobby);
     }
 
-    private async connect(opts: { readonly token: string }) {
-        return new Promise<void>((resolve, reject) => {
-            this.setConnectionState(ConnectionState.CONNECTING);
+    private async connect() {
+        this.setConnectionState(ConnectionState.CONNECTING);
 
-            this.socket = io(this.url, {
-                reconnection: false,
-                query: {
-                    token: opts.token,
-                },
-            });
-            this.socket.on("connect", () => {
-                this.setConnectionState(ConnectionState.CONNECTED);
-                resolve();
-            });
-            this.socket.on("disconnect", () => {
+        this.socket = await this.api.connect({
+            token: this.token,
+            onDisconnect: () => {
                 this.setConnectionState(ConnectionState.DISCONNECTED);
-                reject(new Error("Disconnected"));
-            });
-            this.socket.on("connect_error", (err) => reject(err));
-            this.socket.on("connect_timeout", (err) => reject(err));
-            this.socket.on("message", (message) => this.onMessage(message));
-            this.socket.connect();
-        });
+            },
+            onMessage: (message: any) => {
+                this.onMessage(message)
+            },
+        })
+
+        this.setConnectionState(ConnectionState.CONNECTED);
     }
 
     private onMessage(message: AnyMessage) {
@@ -222,13 +183,8 @@ export class LobbyClient {
     }
 
     async disconnect() {
-        const request: LeaveLobbyRequest = {
+        await this.api.leave({
             token: this.token,
-        };
-
-        await this.callApi(`/leave`, {
-            method: "POST",
-            body: JSON.stringify(request),
         });
 
         this.socket?.disconnect();
