@@ -10,11 +10,6 @@ export interface LobbyUpdated extends Message {
     lobby: Lobby;
 }
 
-export interface LobbyClosed extends Message {
-    type: 'lobby-closed';
-    lobbyId: string;
-}
-
 export interface DataMessage extends Message {
     type: 'data';
     toUserId: string;
@@ -38,4 +33,4 @@ export interface SetMetadataMessage extends Message {
     value: any;
 }
 
-export type AnyMessage = LobbyUpdated | LobbyClosed | DataMessage | TextMessage | SetMetadataMessage | StatusMessage;
+export type AnyMessage = LobbyUpdated | DataMessage | TextMessage | SetMetadataMessage | StatusMessage;
