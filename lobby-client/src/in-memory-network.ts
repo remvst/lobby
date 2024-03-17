@@ -18,7 +18,7 @@ import {
     LobbyUpdated,
     SetMetadataMessage,
 } from "../../shared/message";
-import { IServerApi, ISocket } from "./network";
+import { ClientSideServiceApi, ClientSideSocket } from "./network";
 
 function randomId() {
     return "id" + ~~(Math.random() * 10000);
@@ -30,7 +30,7 @@ function copy(obj: any) {
 
 type Token = { userId: string; lobbyId: string };
 
-export class InMemoryApi implements IServerApi {
+export class InMemoryApi implements ClientSideServiceApi {
     private readonly lobbies = new Map<string, Lobby>();
     private readonly sockets = new Map<string, InMemorySocket[]>();
 
@@ -96,7 +96,7 @@ export class InMemoryApi implements IServerApi {
         readonly token: string;
         readonly onDisconnect: () => void;
         readonly onMessage: (message: any) => void;
-    }): Promise<ISocket> {
+    }): Promise<ClientSideSocket> {
         const { lobbyId, userId } = JSON.parse(options.token) as Token;
         const lobby = this.lobbies.get(lobbyId);
         if (!lobby) throw new Error("Lobby not found");
@@ -253,7 +253,7 @@ export class InMemoryApi implements IServerApi {
     }
 }
 
-export class InMemorySocket implements ISocket {
+export class InMemorySocket implements ClientSideSocket {
     constructor(
         readonly userId: string,
         readonly onDisconnected: () => void,

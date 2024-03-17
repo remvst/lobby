@@ -1,31 +1,15 @@
-import {
-    CreateLobbyRequest,
-    CreateLobbyResponse,
-    JoinLobbyRequest,
-    JoinLobbyResponse,
-    LeaveLobbyRequest,
-    LeaveLobbyResponse,
-    ListLobbiesRequest,
-    ListLobbiesResponse,
-    PingRequest,
-    PingResponse,
-} from "../../shared/api";
+import { ServiceApi } from "../../shared/api";
 import { AnyMessage } from "../../shared/message";
 
-export interface ISocket {
+export interface ClientSideSocket {
     send(payload: AnyMessage): void;
     disconnect(): Promise<void>;
 }
 
-export interface IServerApi {
-    listLobbies(request: ListLobbiesRequest): Promise<ListLobbiesResponse>;
-    join(request: JoinLobbyRequest): Promise<JoinLobbyResponse>;
-    create(request: CreateLobbyRequest): Promise<CreateLobbyResponse>;
-    leave(request: LeaveLobbyRequest): Promise<LeaveLobbyResponse>;
+export interface ClientSideServiceApi extends ServiceApi {
     connect(options: {
         readonly token: string;
         readonly onDisconnect: () => void;
         readonly onMessage: (message: AnyMessage) => void;
-    }): Promise<ISocket>;
-    ping(request: PingRequest): Promise<PingResponse>;
+    }): Promise<ClientSideSocket>;
 }

@@ -8,12 +8,12 @@ import {
     TextMessage,
 } from "../../shared/message";
 import { ConnectionState } from "./connection-state";
-import { IServerApi, ISocket } from "./network";
+import { ClientSideServiceApi, ClientSideSocket } from "./network";
 
 export class LobbyClient {
-    private socket: ISocket;
+    private socket: ClientSideSocket;
     readonly game: string;
-    readonly api: IServerApi;
+    readonly api: ClientSideServiceApi;
     private readonly users = new Map<string, User>();
 
     userId: string;
@@ -28,7 +28,10 @@ export class LobbyClient {
     onDataMessage: (userId: string, message: any) => void = () => {};
     onConnectionStateChanged: (state: ConnectionState) => void = () => {};
 
-    constructor(opts: { readonly game: string; readonly api: IServerApi }) {
+    constructor(opts: {
+        readonly game: string;
+        readonly api: ClientSideServiceApi;
+    }) {
         this.game = opts.game;
         this.api = opts.api;
     }

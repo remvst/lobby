@@ -61,7 +61,9 @@ export class LobbyHttpServer {
         );
         app.post(
             "/ping",
-            this.responder<PingRequest, PingResponse>(async () => ({})),
+            this.responder<PingRequest, PingResponse>((request) =>
+                this.service.ping(request),
+            ),
         );
     }
 

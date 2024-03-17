@@ -114,3 +114,11 @@ export interface PingRequest {
 export interface PingResponse {
 
 }
+
+export interface ServiceApi {
+    listLobbies(request: ListLobbiesRequest): Promise<ListLobbiesResponse>;
+    join(request: JoinLobbyRequest): Promise<JoinLobbyResponse>;
+    create(request: CreateLobbyRequest): Promise<CreateLobbyResponse>;
+    leave(request: LeaveLobbyRequest): Promise<LeaveLobbyResponse>;
+    ping(request: PingRequest): Promise<PingResponse>;
+}

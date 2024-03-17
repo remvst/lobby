@@ -12,9 +12,9 @@ import {
     PingResponse,
 } from "../../shared/api";
 import { AnyMessage } from "../../shared/message";
-import { IServerApi, ISocket } from "./network";
+import { ClientSideServiceApi, ClientSideSocket } from "./network";
 
-export class HttpServerApi implements IServerApi {
+export class HttpServerApi implements ClientSideServiceApi {
     constructor(readonly url: string) {}
 
     async callApi<ResponseType>(
@@ -67,7 +67,7 @@ export class HttpServerApi implements IServerApi {
         readonly token: string;
         readonly onDisconnect: () => void;
         readonly onMessage: (message: any) => void;
-    }): Promise<ISocket> {
+    }): Promise<ClientSideSocket> {
         const socket = new HttpSocket(
             this.url,
             options.token,
@@ -83,7 +83,7 @@ export class HttpServerApi implements IServerApi {
     }
 }
 
-export class HttpSocket implements ISocket {
+export class HttpSocket implements ClientSideSocket {
     private readonly socket: Socket;
     private readonly onDisconnected: () => void;
 

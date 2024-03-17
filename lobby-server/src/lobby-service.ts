@@ -13,12 +13,15 @@ import {
     ListLobbiesRequest,
     ListLobbiesResponse,
     METADATA_DISPLAY_NAME_KEY,
+    PingRequest,
+    PingResponse,
     SendDataMessageRequest,
     SendDataMessageResponse,
     SendStatusMessageRequest,
     SendStatusMessageResponse,
     SendTextMessageRequest,
     SendTextMessageResponse,
+    ServiceApi,
     SetMetadataRequest,
     SetMetadataResponse,
     User,
@@ -33,12 +36,12 @@ import {
     StatusMessage,
     TextMessage,
 } from "../../shared/message";
-import { SocketController } from "./socket-controller";
 import { BadRequestError, ForbiddenError, NotFoundError } from "./http-error";
 import { LobbyController } from "./lobby-controller";
 import { LobbyDetails } from "./model/lobby-details";
 import { TokenFormat } from "./model/token";
 import { DefaultModerator, Moderator } from "./moderator";
+import { SocketController } from "./socket-controller";
 import { Storage } from "./storage/storage";
 import { AutoKickTaskPayload } from "./task-params";
 import { TaskQueue } from "./task-queue";
@@ -48,7 +51,7 @@ const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND * 60;
 const ONE_HOUR = ONE_MINUTE * 60;
 
-export class LobbyService {
+export class LobbyService implements ServiceApi {
     lobbyIdGenerator: () => string = () => uuidv4();
     playerIdGenerator: () => string = () => uuidv4();
 
@@ -94,6 +97,10 @@ export class LobbyService {
                 await this.leaveLobby(lobby, userId);
             },
         );
+    }
+
+    async ping(request: PingRequest): Promise<PingResponse> {
+        return {};
     }
 
     async listLobbies(
