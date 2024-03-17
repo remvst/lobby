@@ -52,7 +52,7 @@ export class LobbyClient {
     sendTextMessage(message: string) {
         const payload: TextMessage = {
             fromUserId: this.userId,
-            message: message,
+            message,
             type: "text-message",
         };
         this.socket.send(payload);
@@ -62,7 +62,7 @@ export class LobbyClient {
         const payload: DataMessage = {
             fromUserId: this.userId,
             toUserId: toUserId,
-            data: data,
+            data,
             type: "data",
         };
         this.socket.send(payload);
@@ -71,7 +71,7 @@ export class LobbyClient {
     sendStatusMessage(message: string) {
         const payload: StatusMessage = {
             fromUserId: this.userId,
-            message: message,
+            message,
             type: "status-message",
         };
         this.socket.send(payload);
@@ -159,9 +159,6 @@ export class LobbyClient {
         switch (message.type) {
             case "data":
                 this.onDataMessage(message.fromUserId, message.data);
-                break;
-            case "lobby-closed":
-                this.disconnect();
                 break;
             case "lobby-updated":
                 this.lobby = message.lobby;
