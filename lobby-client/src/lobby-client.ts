@@ -1,7 +1,4 @@
-import {
-    PingResponse,
-    User,
-} from "../../shared/api";
+import { PingResponse, User } from "../../shared/api";
 import { Lobby } from "../../shared/lobby";
 import {
     AnyMessage,
@@ -14,7 +11,6 @@ import { ConnectionState } from "./connection-state";
 import { IServerApi, ISocket } from "./network";
 
 export class LobbyClient {
-
     private socket: ISocket;
     readonly game: string;
     readonly api: IServerApi;
@@ -32,10 +28,7 @@ export class LobbyClient {
     onDataMessage: (userId: string, message: any) => void = () => {};
     onConnectionStateChanged: (state: ConnectionState) => void = () => {};
 
-    constructor(opts: {
-        readonly game: string;
-        readonly api: IServerApi;
-    }) {
+    constructor(opts: { readonly game: string; readonly api: IServerApi }) {
         this.game = opts.game;
         this.api = opts.api;
     }
@@ -148,9 +141,9 @@ export class LobbyClient {
                 this.setConnectionState(ConnectionState.DISCONNECTED);
             },
             onMessage: (message: any) => {
-                this.onMessage(message)
+                this.onMessage(message);
             },
-        })
+        });
 
         this.setConnectionState(ConnectionState.CONNECTED);
     }

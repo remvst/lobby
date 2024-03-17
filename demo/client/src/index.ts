@@ -1,4 +1,8 @@
-import { ConnectionState, HttpServerApi, LobbyClient, InMemoryApi } from "@remvst/lobby-client";
+import {
+    ConnectionState,
+    HttpServerApi,
+    LobbyClient,
+} from "@remvst/lobby-client";
 
 window.addEventListener("load", () => {
     // const api = new InMemoryApi();

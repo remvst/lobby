@@ -1,17 +1,34 @@
-import { CreateLobbyRequest, CreateLobbyResponse, JoinLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, ListLobbiesRequest, ListLobbiesResponse, PingRequest, PingResponse, User } from "../../shared/api";
+import {
+    CreateLobbyRequest,
+    CreateLobbyResponse,
+    JoinLobbyRequest,
+    JoinLobbyResponse,
+    LeaveLobbyRequest,
+    LeaveLobbyResponse,
+    ListLobbiesRequest,
+    ListLobbiesResponse,
+    PingRequest,
+    PingResponse,
+    User,
+} from "../../shared/api";
 import { Lobby } from "../../shared/lobby";
-import { AnyMessage, DataMessage, LobbyUpdated, SetMetadataMessage } from "../../shared/message";
+import {
+    AnyMessage,
+    DataMessage,
+    LobbyUpdated,
+    SetMetadataMessage,
+} from "../../shared/message";
 import { IServerApi, ISocket } from "./network";
 
 function randomId() {
-    return 'id' + ~~(Math.random() * 10000);
+    return "id" + ~~(Math.random() * 10000);
 }
 
 function copy(obj: any) {
     return JSON.parse(JSON.stringify(obj));
 }
 
-type Token = {userId: string, lobbyId: string};
+type Token = { userId: string; lobbyId: string };
 
 export class InMemoryApi implements IServerApi {
     private readonly lobbies = new Map<string, Lobby>();
@@ -38,7 +55,9 @@ export class InMemoryApi implements IServerApi {
         lobbyId: string,
     ): Promise<void> {
         const sockets = this.sockets.get(lobbyId) || [];
-        const socket = sockets.filter(socket => socket.userId === toUserId)[0];
+        const socket = sockets.filter(
+            (socket) => socket.userId === toUserId,
+        )[0];
         if (!socket) return;
 
         const message: DataMessage = {
@@ -51,7 +70,11 @@ export class InMemoryApi implements IServerApi {
         socket.onMessage(message);
     }
 
-    private async onMessageReceivedFromClient(lobbyId: string, fromUserId: string, message: AnyMessage) {
+    private async onMessageReceivedFromClient(
+        lobbyId: string,
+        fromUserId: string,
+        message: AnyMessage,
+    ) {
         switch (message.type) {
             case "data":
                 await this.sendDataMessage(
@@ -76,7 +99,7 @@ export class InMemoryApi implements IServerApi {
     }): Promise<ISocket> {
         const { lobbyId, userId } = JSON.parse(options.token) as Token;
         const lobby = this.lobbies.get(lobbyId);
-        if (!lobby) throw new Error('Lobby not found');
+        if (!lobby) throw new Error("Lobby not found");
 
         const socket = new InMemorySocket(
             userId,
@@ -90,7 +113,8 @@ export class InMemoryApi implements IServerApi {
 
                 this.notifyLobbyUpdate(lobby);
             },
-            (message: AnyMessage) => this.onMessageReceivedFromClient(lobbyId, userId, message),
+            (message: AnyMessage) =>
+                this.onMessageReceivedFromClient(lobbyId, userId, message),
             (message) => options.onMessage(message),
         );
 
@@ -116,7 +140,9 @@ export class InMemoryApi implements IServerApi {
         return {};
     }
 
-    async listLobbies(payload: ListLobbiesRequest): Promise<ListLobbiesResponse> {
+    async listLobbies(
+        payload: ListLobbiesRequest,
+    ): Promise<ListLobbiesResponse> {
         return {
             lobbies: Array.from(this.lobbies.values()),
         };
@@ -124,7 +150,7 @@ export class InMemoryApi implements IServerApi {
 
     async join(payload: JoinLobbyRequest): Promise<JoinLobbyResponse> {
         const lobby = this.lobbies.get(payload.lobbyId);
-        if (!lobby) throw new Error('Lobby not found');
+        if (!lobby) throw new Error("Lobby not found");
 
         const participant: User = {
             id: randomId(),
@@ -132,7 +158,7 @@ export class InMemoryApi implements IServerApi {
                 displayName: payload.playerDisplayName,
             },
             connected: false,
-            lastConnected: 0
+            lastConnected: 0,
         };
 
         lobby.participants.push(participant);
@@ -158,7 +184,7 @@ export class InMemoryApi implements IServerApi {
                 displayName: payload.playerDisplayName,
             },
             connected: false,
-            lastConnected: 0
+            lastConnected: 0,
         };
 
         const lobby: Lobby = {
@@ -191,9 +217,11 @@ export class InMemoryApi implements IServerApi {
         const token = JSON.parse(payload.token) as Token;
 
         const lobby = this.lobbies.get(token.lobbyId);
-        if (!lobby) throw new Error('Lobby not found');
+        if (!lobby) throw new Error("Lobby not found");
 
-        lobby.participants = lobby.participants.filter(p => p.id !== token.userId);
+        lobby.participants = lobby.participants.filter(
+            (p) => p.id !== token.userId,
+        );
 
         const sockets = this.sockets.get(lobby.id) || [];
         for (const socket of Array.from(sockets)) {
@@ -214,32 +242,30 @@ export class InMemoryApi implements IServerApi {
 
     private async setMetadata(lobbyId: string, message: SetMetadataMessage) {
         const lobby = this.lobbies.get(lobbyId);
-        if (!lobby) throw new Error('Lobby not found');
+        if (!lobby) throw new Error("Lobby not found");
 
-        const participant = lobby.participants.filter(p => p.id === message.userId)[0];
-        if (!participant) throw new Error('Lobby not found');
+        const participant = lobby.participants.filter(
+            (p) => p.id === message.userId,
+        )[0];
+        if (!participant) throw new Error("Lobby not found");
 
         participant.metadata[message.key] = message.value;
     }
 }
 
 export class InMemorySocket implements ISocket {
-
     constructor(
         readonly userId: string,
         readonly onDisconnected: () => void,
         readonly onSend: (message: AnyMessage) => void,
         readonly onMessage: (message: AnyMessage) => void,
-    ) {
-    }
+    ) {}
 
     send(payload: AnyMessage): void {
         this.onSend(payload);
     }
 
-    async connect(): Promise<void> {
-
-    }
+    async connect(): Promise<void> {}
 
     async disconnect(): Promise<void> {
         this.onDisconnected();

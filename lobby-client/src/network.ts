@@ -1,4 +1,15 @@
-import { ListLobbiesRequest, ListLobbiesResponse, JoinLobbyRequest, JoinLobbyResponse, CreateLobbyRequest, CreateLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, PingResponse, PingRequest } from "../../shared/api";
+import {
+    CreateLobbyRequest,
+    CreateLobbyResponse,
+    JoinLobbyRequest,
+    JoinLobbyResponse,
+    LeaveLobbyRequest,
+    LeaveLobbyResponse,
+    ListLobbiesRequest,
+    ListLobbiesResponse,
+    PingRequest,
+    PingResponse,
+} from "../../shared/api";
 import { AnyMessage } from "../../shared/message";
 
 export interface ISocket {

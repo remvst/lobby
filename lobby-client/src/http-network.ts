@@ -1,17 +1,26 @@
 import { io, Socket } from "socket.io-client";
-import { ListLobbiesRequest, ListLobbiesResponse, JoinLobbyRequest, JoinLobbyResponse, CreateLobbyRequest, CreateLobbyResponse, LeaveLobbyRequest, LeaveLobbyResponse, PingRequest, PingResponse } from "../../shared/api";
-import { IServerApi, ISocket } from "./network";
+import {
+    CreateLobbyRequest,
+    CreateLobbyResponse,
+    JoinLobbyRequest,
+    JoinLobbyResponse,
+    LeaveLobbyRequest,
+    LeaveLobbyResponse,
+    ListLobbiesRequest,
+    ListLobbiesResponse,
+    PingRequest,
+    PingResponse,
+} from "../../shared/api";
 import { AnyMessage } from "../../shared/message";
+import { IServerApi, ISocket } from "./network";
 
 export class HttpServerApi implements IServerApi {
+    constructor(readonly url: string) {}
 
-    constructor(
-        readonly url: string,
-    ) {
-
-    }
-
-    async callApi<ResponseType>(path: string, extraInit: RequestInit): Promise<ResponseType> {
+    async callApi<ResponseType>(
+        path: string,
+        extraInit: RequestInit,
+    ): Promise<ResponseType> {
         const resp = await fetch(this.url + path, {
             method: "POST",
             headers: {
@@ -55,7 +64,7 @@ export class HttpServerApi implements IServerApi {
     }
 
     async connect(options: {
-        readonly token: string,
+        readonly token: string;
         readonly onDisconnect: () => void;
         readonly onMessage: (message: any) => void;
     }): Promise<ISocket> {
@@ -75,7 +84,6 @@ export class HttpServerApi implements IServerApi {
 }
 
 export class HttpSocket implements ISocket {
-
     private readonly socket: Socket;
     private readonly onDisconnected: () => void;
 
