@@ -115,6 +115,10 @@ export interface PingResponse {
 
 }
 
+export interface ErrorResponse {
+    reason: string;
+}
+
 export interface ServiceApi {
     listLobbies(request: ListLobbiesRequest): Promise<ListLobbiesResponse>;
     join(request: JoinLobbyRequest): Promise<JoinLobbyResponse>;

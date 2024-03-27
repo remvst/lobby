@@ -4,6 +4,7 @@ import { Server, Socket } from "socket.io";
 import {
     CreateLobbyRequest,
     CreateLobbyResponse,
+    ErrorResponse,
     JoinLobbyRequest,
     JoinLobbyResponse,
     LeaveLobbyRequest,
@@ -84,7 +85,11 @@ export class LobbyHttpServer {
                 } else {
                     res.status(500);
                 }
-                res.json({ reason: e.message });
+
+                const response: ErrorResponse = {
+                    reason: e.message,
+                };
+                res.json(response);
             }
         };
     }

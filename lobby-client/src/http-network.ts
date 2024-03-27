@@ -2,6 +2,7 @@ import { io, Socket } from "socket.io-client";
 import {
     CreateLobbyRequest,
     CreateLobbyResponse,
+    ErrorResponse,
     JoinLobbyRequest,
     JoinLobbyResponse,
     LeaveLobbyRequest,
@@ -21,15 +22,22 @@ export class HttpServerApi implements ClientSideServiceApi {
         path: string,
         extraInit: RequestInit,
     ): Promise<ResponseType> {
-        const resp = await fetch(this.url + path, {
+        const req = new Request(this.url + path, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             ...extraInit,
         });
-        if (!resp.ok)
-            throw new Error(`API ${path} returned error code ${resp.status}`);
+        const resp = await fetch(req);
+        if (!resp.ok) {
+            let message = `API ${req.method} ${req.url} returned error code ${resp.status}`
+            try {
+                const errorResponse = await resp.json() as ErrorResponse;
+                if (errorResponse) message = errorResponse.reason;
+            } catch (err) {}
+            throw new Error(message);
+        }
         return await resp.json();
     }
 
