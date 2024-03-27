@@ -31,9 +31,9 @@ export class HttpServerApi implements ClientSideServiceApi {
         });
         const resp = await fetch(req);
         if (!resp.ok) {
-            let message = `API ${req.method} ${req.url} returned error code ${resp.status}`
+            let message = `API ${req.method} ${req.url} returned error code ${resp.status}`;
             try {
-                const errorResponse = await resp.json() as ErrorResponse;
+                const errorResponse = (await resp.json()) as ErrorResponse;
                 if (errorResponse) message = errorResponse.reason;
             } catch (err) {}
             throw new Error(message);
