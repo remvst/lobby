@@ -250,6 +250,8 @@ export class InMemoryApi implements ClientSideServiceApi {
         if (!participant) throw new Error("Lobby not found");
 
         participant.metadata[message.key] = message.value;
+
+        this.notifyLobbyUpdate(lobby);
     }
 }
 
