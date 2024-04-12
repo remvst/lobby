@@ -9,4 +9,5 @@ export interface Lobby {
     participants: User[];
     created: number;
     lastUpdate: number;
+    isPrivate: boolean;
 }

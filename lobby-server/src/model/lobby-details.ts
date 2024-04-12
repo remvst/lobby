@@ -6,4 +6,5 @@ export interface LobbyDetails {
     maxParticipants: number;
     created: number;
     lastUpdate: number;
+    isPrivate: boolean;
 }

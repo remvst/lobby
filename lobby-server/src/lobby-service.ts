@@ -141,6 +141,7 @@ export class LobbyService implements ServiceApi {
             }),
         );
         const lobbies = allLobbies
+            .filter((lobby) => !lobby.isPrivate)
             .filter((lobby) => lobby.participants.length > 0)
             .filter((lobby) => Date.now() - lobby.lastUpdate < 2 * ONE_HOUR)
             .filter(
@@ -218,6 +219,7 @@ export class LobbyService implements ServiceApi {
             maxParticipants: this.options.maxLobbyParticipants,
             created: Date.now(),
             lastUpdate: Date.now(),
+            isPrivate: !!request.isPrivate,
         };
 
         await this.storage.participants(lobby.id).item(user.id).set(user);
@@ -616,6 +618,7 @@ export class LobbyService implements ServiceApi {
             participants: Array.from(participants.values()),
             created: lobby.created,
             lastUpdate: lobby.lastUpdate,
+            isPrivate: lobby.isPrivate,
         };
     }
 

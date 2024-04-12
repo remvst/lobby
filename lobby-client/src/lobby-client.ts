@@ -98,11 +98,13 @@ export class LobbyClient {
     async createAndJoin(opts: {
         readonly playerDisplayName: string;
         readonly lobbyDisplayName: string;
+        readonly isPrivate?: boolean;
     }) {
         const resp = await this.api.create({
             game: this.game,
             lobbyDisplayName: opts.lobbyDisplayName,
             playerDisplayName: opts.playerDisplayName,
+            isPrivate: opts.isPrivate,
         });
 
         const { token, user, lobby } = resp;

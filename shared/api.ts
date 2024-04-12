@@ -15,6 +15,7 @@ export interface CreateLobbyRequest {
     game: string;
     lobbyDisplayName: string;
     playerDisplayName: string;
+    isPrivate?: boolean;
 }
 
 export interface CreateLobbyResponse {

@@ -196,6 +196,7 @@ export class InMemoryApi implements ClientSideServiceApi {
             participants: [participant],
             created: Date.now(),
             lastUpdate: Date.now(),
+            isPrivate: !!payload.isPrivate,
         };
         this.lobbies.set(lobby.id, lobby);
 
