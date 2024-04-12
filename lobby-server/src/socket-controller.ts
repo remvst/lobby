@@ -6,4 +6,5 @@ export interface SocketController {
     disconnect(): void;
     onMessage(listener: (message: AnyMessage) => void): void;
     onDisconnect(listener: () => void): void;
+    ping(): Promise<number>;
 }

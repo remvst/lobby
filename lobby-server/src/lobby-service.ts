@@ -60,6 +60,7 @@ export class LobbyService implements ServiceApi {
     private readonly taskQueue = new TaskQueue();
     private readonly storage: Storage;
     private readonly moderator: Moderator;
+    private readonly pingInterval: number;
 
     constructor(
         private readonly options: {
@@ -67,10 +68,12 @@ export class LobbyService implements ServiceApi {
             readonly storage: Storage;
             readonly maxLobbyParticipants: number;
             readonly moderator?: Moderator;
+            readonly pingInterval?: number;
         },
     ) {
         this.storage = options.storage;
         this.moderator = options.moderator || new DefaultModerator();
+        this.pingInterval = options.pingInterval || 5000;
 
         this.taskQueue.defineExecutor<AutoKickTaskPayload>(
             "auto-kick",
@@ -127,9 +130,16 @@ export class LobbyService implements ServiceApi {
                     const metadata = await this.storage
                         .participantMeta(details.id, participantId)
                         .entries();
+
+                    let latency = await this.storage
+                        .latency(participantId)
+                        .get();
+                    if (latency === null) latency = 9999;
+
                     participants.push({
                         ...participantShort,
                         metadata: Object.fromEntries(metadata) as UserMetadata,
+                        latency,
                     });
                 }
 
@@ -250,6 +260,7 @@ export class LobbyService implements ServiceApi {
             user: {
                 ...user,
                 metadata: { displayName: playerDisplayName },
+                latency: await this.storage.latency(user.id).get(),
             },
             lobby: await this.lobby(game, lobby.id),
         };
@@ -310,6 +321,7 @@ export class LobbyService implements ServiceApi {
             user: {
                 ...user,
                 metadata: { displayName: playerDisplayName },
+                latency: await this.storage.latency(user.id).get(),
             },
             lobby: await this.lobby(game, lobby.id),
         };
@@ -380,7 +392,16 @@ export class LobbyService implements ServiceApi {
 
         await this.updateLobby(lobby);
 
+        const performPing = async () => {
+            const ping = await socket.ping();
+            await this.storage.latency(user.id).set(ping);
+        };
+
+        const pingInterval = setInterval(performPing, this.pingInterval);
+
         socket.onDisconnect(async () => {
+            clearInterval(pingInterval);
+
             try {
                 const controller = this.lobbies.get(lobbyId);
                 controller.sockets.delete(userId);
@@ -430,6 +451,7 @@ export class LobbyService implements ServiceApi {
             async (message) =>
                 await this.onMessageReceived(game, lobbyId, userId, message),
         );
+        performPing();
     }
 
     async sendTextMessage(
@@ -603,9 +625,14 @@ export class LobbyService implements ServiceApi {
             const metadata = await this.storage
                 .participantMeta(lobby.id, participantId)
                 .entries();
+
+            let latency = await this.storage.latency(participantId).get();
+            if (latency === null) latency = 9999;
+
             participants.push({
                 ...participantShort,
                 metadata: Object.fromEntries(metadata) as UserMetadata,
+                latency,
             });
         }
 

@@ -60,6 +60,7 @@ export type UserMetadata = {[key: string]: any} & { [key in METADATA_DISPLAY_NAM
 
 export interface User extends UserShort {
     metadata: UserMetadata;
+    latency: number;
 }
 
 export interface SendTextMessageRequest {

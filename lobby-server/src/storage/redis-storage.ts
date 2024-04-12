@@ -1,7 +1,7 @@
 import { createClient } from "redis";
 import { User } from "../../../shared/api";
 import { LobbyDetails } from "../model/lobby-details";
-import { MapController, MapItemController, Storage } from "./storage";
+import { ItemController, MapController, Storage } from "./storage";
 
 type RedisClientType = ReturnType<typeof createClient>;
 
@@ -25,7 +25,7 @@ class RedisMapController<T> implements MapController<T> {
         );
     }
 
-    item(key: string): MapItemController<T> {
+    item(key: string): ItemController<T> {
         return new RedisMapItemController(this.client, this.hashKey, key);
     }
 
@@ -34,7 +34,7 @@ class RedisMapController<T> implements MapController<T> {
     }
 }
 
-class RedisMapItemController<T> implements MapItemController<T> {
+class RedisMapItemController<T> implements ItemController<T> {
     constructor(
         private readonly client: RedisClientType,
         private readonly hashKey: string,
@@ -57,6 +57,28 @@ class RedisMapItemController<T> implements MapItemController<T> {
     }
 }
 
+class RedisItemController<T> implements ItemController<T> {
+    constructor(
+        private readonly client: RedisClientType,
+        private readonly itemKey: string,
+    ) {}
+
+    async get(): Promise<T | null> {
+        const asJson = await this.client.get(this.itemKey);
+        if (!asJson) return null;
+        return JSON.parse(asJson);
+    }
+
+    async set(value: T): Promise<void> {
+        const asJson = JSON.stringify(value);
+        await this.client.set(this.itemKey, asJson);
+    }
+
+    async delete(): Promise<void> {
+        await this.client.del(this.itemKey);
+    }
+}
+
 export class RedisStorage implements Storage {
     constructor(readonly client: RedisClientType) {}
 
@@ -75,6 +97,13 @@ export class RedisStorage implements Storage {
         return new RedisMapController(
             this.client,
             `participant-meta-${lobbyId}-${participantId}`,
+        );
+    }
+
+    latency(participantId: string): ItemController<number> {
+        return new RedisItemController(
+            this.client,
+            `participant-latency-${participantId}`,
         );
     }
 }

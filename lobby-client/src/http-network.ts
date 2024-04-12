@@ -109,6 +109,11 @@ export class HttpSocket implements ClientSideSocket {
         });
         this.socket.on("message", (message) => onMessage(message));
 
+        // Respond to server pings
+        this.socket.on("ping", (callback) => {
+            if (typeof callback === "function") callback();
+        });
+
         this.onDisconnected = onDisconnected;
     }
 

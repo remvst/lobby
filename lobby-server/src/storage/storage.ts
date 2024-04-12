@@ -4,11 +4,11 @@ import { LobbyDetails } from "../model/lobby-details";
 export interface MapController<T> {
     keys(): Promise<string[]>;
     entries(): Promise<Map<string, T>>;
-    item(key: string): MapItemController<T>;
+    item(key: string): ItemController<T>;
     size(): Promise<number>;
 }
 
-export interface MapItemController<T> {
+export interface ItemController<T> {
     get(): Promise<T | null>;
     set(value: T): Promise<void>;
     delete(): Promise<void>;
@@ -27,4 +27,5 @@ export interface Storage {
         lobbyId: string,
         participantId: string,
     ): MapController<number | boolean | string>;
+    latency(participantId: string): ItemController<number>;
 }

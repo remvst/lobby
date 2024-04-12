@@ -21,4 +21,14 @@ export class SocketIOWrapper implements SocketController {
     onDisconnect(listener: () => void): void {
         this.io.on("disconnect", listener);
     }
+
+    ping(): Promise<number> {
+        const before = Date.now();
+        return new Promise((resolve) => {
+            this.io.emit("ping", () => {
+                const after = Date.now();
+                resolve(after - before);
+            });
+        });
+    }
 }

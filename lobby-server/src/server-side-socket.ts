@@ -28,4 +28,8 @@ export class ServerSideSocket implements SocketController {
     onDisconnect(listener: () => void) {
         this.onDisconnectListener = listener;
     }
+
+    ping(): Promise<number> {
+        return Promise.resolve(0);
+    }
 }

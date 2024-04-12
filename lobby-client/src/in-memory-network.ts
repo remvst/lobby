@@ -159,6 +159,7 @@ export class InMemoryApi implements ClientSideServiceApi {
             },
             connected: false,
             lastConnected: 0,
+            latency: 0,
         };
 
         lobby.participants.push(participant);
@@ -185,6 +186,7 @@ export class InMemoryApi implements ClientSideServiceApi {
             },
             connected: false,
             lastConnected: 0,
+            latency: 0,
         };
 
         const lobby: Lobby = {
