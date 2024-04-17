@@ -25,7 +25,7 @@ export class LobbyHttpServer {
         protected readonly service: LobbyService,
         protected readonly server: http.Server,
         protected readonly app: any,
-        serverOptions: ServerOptions
+        serverOptions: Partial<ServerOptions> = {},
     ) {
         const io = new Server(server, {
             cors: {
