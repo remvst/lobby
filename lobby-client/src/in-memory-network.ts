@@ -3,6 +3,8 @@ import {
     CreateLobbyResponse,
     JoinLobbyRequest,
     JoinLobbyResponse,
+    KickFromLobbyRequest,
+    KickFromLobbyResponse,
     LeaveLobbyRequest,
     LeaveLobbyResponse,
     ListLobbiesRequest,
@@ -241,6 +243,10 @@ export class InMemoryApi implements ClientSideServiceApi {
         this.notifyLobbyUpdate(lobby);
 
         return {};
+    }
+
+    async kick(request: KickFromLobbyRequest): Promise<KickFromLobbyResponse> {
+        throw new Error('Kicking not supported for InMemoryApi');
     }
 
     private async setMetadata(lobbyId: string, message: SetMetadataMessage) {

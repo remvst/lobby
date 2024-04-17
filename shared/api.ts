@@ -43,6 +43,14 @@ export interface LeaveLobbyRequest {
 export interface LeaveLobbyResponse {
 }
 
+export interface KickFromLobbyRequest {
+    token: string;
+    kickedUserId: string;
+}
+
+export interface KickFromLobbyResponse {
+}
+
 export interface DestroyLobbyRequest {
     token: string;
 }
@@ -126,5 +134,6 @@ export interface ServiceApi {
     join(request: JoinLobbyRequest): Promise<JoinLobbyResponse>;
     create(request: CreateLobbyRequest): Promise<CreateLobbyResponse>;
     leave(request: LeaveLobbyRequest): Promise<LeaveLobbyResponse>;
+    kick(request: KickFromLobbyRequest): Promise<KickFromLobbyResponse>;
     ping(request: PingRequest): Promise<PingResponse>;
 }

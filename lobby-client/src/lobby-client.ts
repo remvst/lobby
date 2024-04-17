@@ -177,6 +177,13 @@ export class LobbyClient {
         }
     }
 
+    async kick(kickedUserId: string) {
+        await this.api.kick({
+            token: this.token,
+            kickedUserId,
+        });
+    }
+
     async disconnect() {
         await this.api.leave({
             token: this.token,

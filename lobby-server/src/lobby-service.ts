@@ -8,6 +8,8 @@ import {
     DestroyLobbyResponse,
     JoinLobbyRequest,
     JoinLobbyResponse,
+    KickFromLobbyRequest,
+    KickFromLobbyResponse,
     LeaveLobbyRequest,
     LeaveLobbyResponse,
     ListLobbiesRequest,
@@ -97,7 +99,7 @@ export class LobbyService implements ServiceApi {
 
                 this.logger.info("Autokicking", { lobbyId, userId });
 
-                await this.leaveLobby(lobby, userId);
+                await this.removeFromLobby(lobby, userId);
             },
         );
     }
@@ -177,7 +179,27 @@ export class LobbyService implements ServiceApi {
         const lobby = await this.storage.lobbies(game).item(lobbyId).get();
         if (!lobby) throw new NotFoundError("Lobby not found");
 
-        await this.leaveLobby(lobby, userId);
+        await this.removeFromLobby(lobby, userId);
+        return {};
+    }
+
+    async kick(request: KickFromLobbyRequest): Promise<KickFromLobbyResponse> {
+        const { token, kickedUserId } = request;
+
+        let decoded: TokenFormat;
+        try {
+            decoded = this.verifyToken(token);
+        } catch (err) {
+            throw new BadRequestError("Invalid token");
+        }
+
+        const { lobbyId, userId, game } = decoded;
+        const lobby = await this.storage.lobbies(game).item(lobbyId).get();
+        if (!lobby) throw new NotFoundError("Lobby not found");
+        if (lobby.leader !== userId)
+            throw new ForbiddenError("Only the host can kick a user");
+
+        await this.removeFromLobby(lobby, kickedUserId);
         return {};
     }
 
@@ -198,7 +220,7 @@ export class LobbyService implements ServiceApi {
 
         const participantIds = await this.storage.participants(lobbyId).keys();
         await Promise.all(
-            participantIds.map((id) => this.leaveLobby(lobby, id)),
+            participantIds.map((id) => this.removeFromLobby(lobby, id)),
         );
         return {};
     }
@@ -675,7 +697,7 @@ export class LobbyService implements ServiceApi {
         }
     }
 
-    private async leaveLobby(lobby: LobbyDetails, userId: string) {
+    private async removeFromLobby(lobby: LobbyDetails, userId: string) {
         await this.storage.participants(lobby.id).item(userId).delete();
 
         const newParticipantIds = await this.storage

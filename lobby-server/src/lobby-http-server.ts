@@ -7,6 +7,8 @@ import {
     ErrorResponse,
     JoinLobbyRequest,
     JoinLobbyResponse,
+    KickFromLobbyRequest,
+    KickFromLobbyResponse,
     LeaveLobbyRequest,
     LeaveLobbyResponse,
     ListLobbiesRequest,
@@ -46,6 +48,12 @@ export class LobbyHttpServer {
             "/leave",
             this.responder<LeaveLobbyRequest, LeaveLobbyResponse>((request) =>
                 this.service.leave(request),
+            ),
+        );
+        app.post(
+            "/kick",
+            this.responder<KickFromLobbyRequest, KickFromLobbyResponse>(
+                (request) => this.service.kick(request),
             ),
         );
         app.post(

@@ -5,6 +5,8 @@ import {
     ErrorResponse,
     JoinLobbyRequest,
     JoinLobbyResponse,
+    KickFromLobbyRequest,
+    KickFromLobbyResponse,
     LeaveLobbyRequest,
     LeaveLobbyResponse,
     ListLobbiesRequest,
@@ -66,6 +68,13 @@ export class HttpServerApi implements ClientSideServiceApi {
 
     leave(request: LeaveLobbyRequest): Promise<LeaveLobbyResponse> {
         return this.callApi(`/leave`, {
+            method: "POST",
+            body: JSON.stringify(request),
+        });
+    }
+
+    kick(request: KickFromLobbyRequest): Promise<KickFromLobbyResponse> {
+        return this.callApi(`/kick`, {
             method: "POST",
             body: JSON.stringify(request),
         });

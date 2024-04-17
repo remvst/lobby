@@ -22,6 +22,8 @@ window.addEventListener("load", () => {
         ) as HTMLInputElement,
         lobbyId: document.querySelector("#lobby-id") as HTMLSelectElement,
         refresh: document.querySelector("#refresh") as HTMLInputElement,
+        kickedUserId: document.querySelector("#kicked-user-id") as HTMLSelectElement,
+        kick: document.querySelector("#kick") as HTMLButtonElement,
         create: document.querySelector("#create") as HTMLButtonElement,
         join: document.querySelector("#join") as HTMLButtonElement,
         disconnect: document.querySelector("#disconnect") as HTMLButtonElement,
@@ -68,6 +70,14 @@ window.addEventListener("load", () => {
             element.value = participant.id;
             element.innerText = `${participant.metadata.displayName} (${participant.id})`;
             dom.dataRecipient.appendChild(element);
+        }
+
+        dom.kickedUserId.innerHTML = "";
+        for (const participant of lobby.participants) {
+            const element = document.createElement("option");
+            element.value = participant.id;
+            element.innerText = `${participant.metadata.displayName} (${participant.id})`;
+            dom.kickedUserId.appendChild(element);
         }
     };
     client.onDataMessage = async (userId: string, message: any) => {
@@ -142,9 +152,7 @@ window.addEventListener("load", () => {
                     lobbyDisplayName: dom.lobbyDisplayName.value,
                     playerDisplayName: dom.playerDisplayName.value,
                 })
-                .then(() => {
-                    log(`Connected`);
-                })
+                .then(() => log(`Connected`))
                 .catch((err) => log(err));
         },
         false,
@@ -162,9 +170,22 @@ window.addEventListener("load", () => {
                     lobbyId,
                     playerDisplayName: dom.playerDisplayName.value,
                 })
-                .then(() => {
-                    log(`Connected`);
-                })
+                .then(() => log(`Connected`))
+                .catch((err) => log(err));
+        },
+        false,
+    );
+
+    dom.kick.addEventListener(
+        "click",
+        () => {
+            log(`Kicking...`);
+
+            const kickedUserId = dom.kickedUserId.value;
+
+            client
+                .kick(kickedUserId)
+                .then(() => log(`Kicked`))
                 .catch((err) => log(err));
         },
         false,
