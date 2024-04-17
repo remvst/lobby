@@ -246,7 +246,7 @@ export class InMemoryApi implements ClientSideServiceApi {
     }
 
     async kick(request: KickFromLobbyRequest): Promise<KickFromLobbyResponse> {
-        throw new Error('Kicking not supported for InMemoryApi');
+        throw new Error("Kicking not supported for InMemoryApi");
     }
 
     private async setMetadata(lobbyId: string, message: SetMetadataMessage) {

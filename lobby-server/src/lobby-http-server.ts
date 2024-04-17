@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import { Server, Socket, ServerOptions } from "socket.io";
+import { Server, ServerOptions, Socket } from "socket.io";
 import {
     CreateLobbyRequest,
     CreateLobbyResponse,

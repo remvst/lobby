@@ -22,7 +22,9 @@ window.addEventListener("load", () => {
         ) as HTMLInputElement,
         lobbyId: document.querySelector("#lobby-id") as HTMLSelectElement,
         refresh: document.querySelector("#refresh") as HTMLInputElement,
-        kickedUserId: document.querySelector("#kicked-user-id") as HTMLSelectElement,
+        kickedUserId: document.querySelector(
+            "#kicked-user-id",
+        ) as HTMLSelectElement,
         kick: document.querySelector("#kick") as HTMLButtonElement,
         create: document.querySelector("#create") as HTMLButtonElement,
         join: document.querySelector("#join") as HTMLButtonElement,
