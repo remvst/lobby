@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import { Server, Socket } from "socket.io";
+import { Server, Socket, ServerOptions } from "socket.io";
 import {
     CreateLobbyRequest,
     CreateLobbyResponse,
@@ -25,12 +25,16 @@ export class LobbyHttpServer {
         protected readonly service: LobbyService,
         protected readonly server: http.Server,
         protected readonly app: any,
+        serverOptions: ServerOptions
     ) {
         const io = new Server(server, {
             cors: {
                 origin: "*",
                 methods: ["GET", "POST"],
             },
+            pingInterval: 10000,
+            pingTimeout: 5000,
+            ...serverOptions,
         });
         app.use(express.json());
 
