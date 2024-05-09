@@ -548,7 +548,9 @@ export class LobbyService implements ServiceApi {
 
         if (request.key === METADATA_DISPLAY_NAME_KEY) {
             if (typeof request.value !== "string") {
-                throw new BadRequestError(`Invalid metadata key (${request.key})`);
+                throw new BadRequestError(
+                    `Invalid metadata key (${request.key})`,
+                );
             }
             request.value = this.moderator.moderatePlayerDisplayName(
                 request.value as string,
