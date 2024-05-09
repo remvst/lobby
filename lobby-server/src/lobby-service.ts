@@ -228,8 +228,16 @@ export class LobbyService implements ServiceApi {
     async create(request: CreateLobbyRequest): Promise<CreateLobbyResponse> {
         let { lobbyDisplayName, playerDisplayName, game } = request;
 
-        if (!lobbyDisplayName || !playerDisplayName || !game) {
-            throw new BadRequestError("Missing parameter");
+        if (!lobbyDisplayName) {
+            throw new BadRequestError("Missing lobbyDisplayName parameter");
+        }
+
+        if (!playerDisplayName) {
+            throw new BadRequestError("Missing playerDisplayName parameter");
+        }
+
+        if (!game) {
+            throw new BadRequestError("Missing game parameter");
         }
 
         lobbyDisplayName =
@@ -291,8 +299,16 @@ export class LobbyService implements ServiceApi {
     async join(request: JoinLobbyRequest): Promise<JoinLobbyResponse> {
         let { playerDisplayName, lobbyId, game } = request;
 
-        if (!playerDisplayName || !lobbyId || !game) {
-            throw new BadRequestError("Missing parameter");
+        if (!lobbyId) {
+            throw new BadRequestError("Missing lobbyId parameter");
+        }
+
+        if (!playerDisplayName) {
+            throw new BadRequestError("Missing playerDisplayName parameter");
+        }
+
+        if (!game) {
+            throw new BadRequestError("Missing game parameter");
         }
 
         playerDisplayName =
@@ -354,7 +370,7 @@ export class LobbyService implements ServiceApi {
         try {
             decoded = jwt.verify(token, this.options.secretKey);
         } catch (err) {
-            throw new Error("Invalid token");
+            throw new Error(`Invalid token: ${err.message}`);
         }
 
         return decoded.data as TokenFormat;
@@ -532,7 +548,7 @@ export class LobbyService implements ServiceApi {
 
         if (request.key === METADATA_DISPLAY_NAME_KEY) {
             if (typeof request.value !== "string") {
-                throw new BadRequestError();
+                throw new BadRequestError(`Invalid metadata key (${request.key})`);
             }
             request.value = this.moderator.moderatePlayerDisplayName(
                 request.value as string,
