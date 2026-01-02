@@ -1,10 +1,10 @@
-import { ConnectionState, LobbyClient } from "@remvst/lobby-client";
+import {
+    ConnectionState,
+    HttpServerApi,
+    LobbyClient,
+} from "@remvst/lobby-client";
 
 window.addEventListener("load", async () => {
-    const { ConnectionState, HttpServerApi, LobbyClient } = await import(
-        "@remvst/lobby-client"
-    );
-
     // const api = new InMemoryApi();
     const api = new HttpServerApi("http://localhost:9000");
 
