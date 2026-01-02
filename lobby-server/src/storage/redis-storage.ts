@@ -1,9 +1,7 @@
-import { createClient } from "redis";
+import { RedisClientType } from "redis";
 import { User } from "../../../shared/api";
 import { LobbyDetails } from "../model/lobby-details";
 import { ItemController, MapController, Storage } from "./storage";
-
-type RedisClientType = ReturnType<typeof createClient>;
 
 class RedisMapController<T> implements MapController<T> {
     constructor(
@@ -44,7 +42,7 @@ class RedisMapItemController<T> implements ItemController<T> {
     async get(): Promise<T | null> {
         const asJson = await this.client.hGet(this.hashKey, this.itemKey);
         if (!asJson) return null;
-        return JSON.parse(asJson);
+        return JSON.parse(asJson as string);
     }
 
     async set(value: T): Promise<void> {
@@ -66,7 +64,7 @@ class RedisItemController<T> implements ItemController<T> {
     async get(): Promise<T | null> {
         const asJson = await this.client.get(this.itemKey);
         if (!asJson) return null;
-        return JSON.parse(asJson);
+        return JSON.parse(asJson as string);
     }
 
     async set(value: T): Promise<void> {
