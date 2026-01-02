@@ -1,14 +1,11 @@
 {
     "name": "@remvst/lobby-server-demo",
-    "version": "1.0.0",
-    "description": "",
-    "author": "",
-    "license": "ISC",
+    "type": "module",
     "scripts": {
         "prettier:fix": "prettier . --write",
         "prettier:check": "prettier . --check",
         "build": "rm -rf lib && tsc",
-        "start": "npm --prefix ../../lobby-server run build && ts-node src/index.ts | bunyan",
+        "start": "npm --prefix ../../lobby-server run build && tsx src/index.ts | bunyan",
         "test": "npm run prettier:check && npm run build"
     },
     "dependencies": {
@@ -21,7 +18,7 @@
         "redis": "^5.10.0",
         "redis-memory-server": "^0.14.1",
         "socket.io": "^4.6.1",
-        "ts-node": "^10.9.1",
+        "tsx": "^4.21.0",
         "typescript": "^5.9.3"
     },
     "devDependencies": {
