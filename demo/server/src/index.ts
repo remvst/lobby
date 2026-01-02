@@ -7,7 +7,7 @@ import {
 import cors from "cors";
 import express from "express";
 import http from "http";
-import { createClient } from "redis";
+import { createClient, RedisClientType } from "redis";
 import { RedisMemoryServer } from "redis-memory-server";
 
 async function setupServerSideLobby(service: LobbyService) {
@@ -35,7 +35,7 @@ async function setupServerSideLobby(service: LobbyService) {
         const host = await redisServer.getHost();
         const port = await redisServer.getPort();
 
-        const redisClient = createClient({
+        const redisClient: RedisClientType = createClient({
             socket: { host, port },
         });
         await redisClient.connect();

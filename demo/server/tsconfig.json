@@ -5,7 +5,8 @@
         "declaration": true,
         "outDir": "./lib",
         "allowJs": false,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "noEmit": true
     },
     "include": ["src/**/*.ts"],
     "exclude": ["node_modules"]
